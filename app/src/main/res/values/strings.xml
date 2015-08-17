@@ -3,13 +3,13 @@
 
     <string name="app_name">Pardons</string>
     <string name="title_activity_main">MainActivity</string>
-    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="send_pardon">Pardon Someone</string>
     <string name="send_pardon_dialog_title">Pardon Someone</string>
     <string name="pardonReasonDefault">Reason for Pardon</string>
     <string name="pardonRecipientSpinnerPrompt">Select Recipient</string>
     <string name="pardonSentText">Sent Pardon!</string>
+    <string name="pardonRequestedText">Requested Pardon!</string>
     <string name="missingMessage">Enter recipient, positive number of pardons, and reason for sending pardon</string>
     <string name="pardonQuantityDefault">Number of Pardons</string>
     <string name="sentPardonsText">Sent:</string>
@@ -18,8 +18,8 @@
     <string name="cancel">Cancel</string>
     <string name="receivedPardonsDefaultValText">0</string>
     <string name="sentPardonsDefaultValText">0</string>
-    <string name="outbound_requested_tab_title">Requested By You</string>
-    <string name="inbound_requested_tab_title">Requests To You</string>
+    <string name="outbound_requested_tab_title">Your Requests</string>
+    <string name="inbound_requested_tab_title">To Review</string>
     <string name="received_tab_title">Received</string>
     <string name="sent_tab_title">Sent</string>
     <string name="pick_target_label">Browse</string>

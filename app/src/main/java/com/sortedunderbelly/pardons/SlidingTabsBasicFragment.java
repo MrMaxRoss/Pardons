@@ -34,7 +34,7 @@ public class SlidingTabsBasicFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_sample, container, false);
+        return inflater.inflate(R.layout.tabs_fragment, container, false);
     }
 
     /**
@@ -50,11 +50,20 @@ public class SlidingTabsBasicFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         // Get the ViewPager and set it's PagerAdapter so that it can display items
         viewPager = (ViewPager) view.findViewById(R.id.viewpager);
-        viewPager.setAdapter(new MyFragmentPagerAdapter(getFragmentManager(), getActivity()));
+        viewPager.setAdapter(new MyFragmentPagerAdapter(
+                getFragmentManager(), (MainActivity) getActivity()));
 
         // Give the SlidingTabLayout the ViewPager, this must be done AFTER the ViewPager has had
         // its PagerAdapter set.
         slidingTabLayout = (SlidingTabLayout) view.findViewById(R.id.sliding_tabs);
         slidingTabLayout.setViewPager(viewPager);
+    }
+
+    public ViewPager getViewPager() {
+        return viewPager;
+    }
+
+    public void updateTabTitles() {
+        slidingTabLayout.updateTabTitles();
     }
 }

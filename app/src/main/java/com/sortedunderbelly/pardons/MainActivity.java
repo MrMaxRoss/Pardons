@@ -24,7 +24,6 @@ import java.util.List;
 
 public class MainActivity extends FragmentActivity {
 
-
     private GoogleApiClientHelper apiClientHelper;
 
     private TextView receivedPardonsText;
@@ -129,7 +128,7 @@ public class MainActivity extends FragmentActivity {
                 new Date(), quantity, reason);
         storage.addRequestedPardon(pardon);
         onRequestedPardon(pardon);
-        Toast.makeText(getApplicationContext(), R.string.pardonSentText,
+        Toast.makeText(getApplicationContext(), R.string.pardonRequestedText,
                 Toast.LENGTH_SHORT).show();
     }
 
@@ -191,6 +190,10 @@ public class MainActivity extends FragmentActivity {
                 InboundRequestedPardonsFragment.INBOUND_REQUESTED_PARDON_ACTION);
         updateViews(pardon.getQuantity(), sentPardonsText,
                 SentPardonsFragment.SENT_PARDON_ACTION);
+    }
+
+    public SlidingTabsBasicFragment getTabsFragment() {
+        return tabsFragment;
     }
 
     /**
