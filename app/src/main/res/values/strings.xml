@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Pardons</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="send_pardon">Pardon Someone</string>
+    <string name="send_pardon_dialog_title">Pardon Someone</string>
+    <string name="pardonReasonDefault">Reason for Pardon</string>
+    <string name="pardonRecipientSpinnerPrompt">Select Recipient</string>
+    <string name="pardonSentText">Sent Pardon!</string>
+    <string name="missingMessage">Enter recipient, positive number of pardons, and reason for sending pardon</string>
+    <string name="pardonQuantityDefault">Number of Pardons</string>
+    <string name="sentPardonsText">Sent:</string>
+    <string name="receivedPardonsText">Received:</string>
+    <string name="sendPardonButtonText">Send Pardons</string>
+    <string name="cancel">Cancel</string>
+    <string name="receivedPardonsDefaultValText">0</string>
+    <string name="sentPardonsDefaultValText">0</string>
+    <string name="outbound_requested_tab_title">Requested By You</string>
+    <string name="inbound_requested_tab_title">Requests To You</string>
+    <string name="received_tab_title">Received</string>
+    <string name="sent_tab_title">Sent</string>
+    <string name="pick_target_label">Browse</string>
+    <string name="select_recipient_hint">Send Pardons to&#8230;</string>
+    <string name="firebase_url">pardons.firebaseio.com</string>
+    <string name="outboundRequestedPardonsText">Requested By You:</string>
+    <string name="outboundRequestedPardonsDefaultValText">0</string>
+    <string name="requestPardonButtonText">Request Pardons</string>
+    <string name="send_pardon_display_name_hint">Send Pardons to&#8230;</string>
+    <string name="request_pardon_display_name_hint">Request Pardons from&#8230;</string>
+    <string name="retract_request_dialog_title">Retract Request?</string>
+    <string name="retract_request_dialog_positive_button_label">Retract</string>
+    <string name="grant_request_dialog_title">Grant Request?</string>
+    <string name="grant_request_dialog_positive_button_label">Grant</string>
+    <string name="invalid_pardon_reference">Could not retrieve the selected pardon</string>
+    <string name="inboundRequestedPardonsText">Requested From You:</string>
+    <string name="inboundRequestedPardonsDefaultValText">0</string>
+
+</resources>

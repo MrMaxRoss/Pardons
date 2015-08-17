@@ -1,0 +1,46 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <RelativeLayout
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent">
+        <EditText
+            android:layout_height="wrap_content"
+            android:hint="this is overridden programatically"
+            android:id="@+id/pardon_target_display_name"
+            android:inputType="textEmailAddress"
+            android:layout_width="wrap_content"
+            android:layout_toStartOf="@+id/do_target_picker"
+            android:layout_alignParentStart="true"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/do_target_picker"
+            android:text="@string/pick_target_label"
+            android:layout_alignParentEnd="true"/>
+    </RelativeLayout>
+
+    <EditText
+        android:id="@+id/pardonQuantityText"
+        android:inputType="number"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp"
+        android:layout_marginBottom="4dp"
+        android:hint="@string/pardonQuantityDefault" />
+
+    <EditText
+        android:id="@+id/pardonReasonText"
+        android:inputType="textAutoComplete"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp"
+        android:layout_marginBottom="4dp"
+        android:hint="@string/pardonReasonDefault" />
+</LinearLayout>
