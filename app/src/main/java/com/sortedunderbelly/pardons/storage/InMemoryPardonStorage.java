@@ -5,6 +5,7 @@ import com.sortedunderbelly.pardons.Pardon;
 
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -14,31 +15,37 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class InMemoryPardonStorage implements PardonStorage {
 
     private final AtomicInteger nextId = new AtomicInteger(1);
-    private final List<Pardon> sentPardons = Lists.newArrayList();
-    private final List<Pardon> receivedPardons = Lists.newArrayList();
-    private final List<Pardon> outboundRequestedPardons = Lists.newArrayList();
-    private final List<Pardon> inboundRequestedPardons = Lists.newArrayList();
+    private final LinkedList<Pardon> sentPardons = Lists.newLinkedList();
+    private final LinkedList<Pardon> receivedPardons = Lists.newLinkedList();
+    private final LinkedList<Pardon> outboundRequestedPardons = Lists.newLinkedList();
+    private final LinkedList<Pardon> inboundRequestedPardons = Lists.newLinkedList();
 
     public InMemoryPardonStorage() {
+        // Seed the database.
+        // Most recent comes first.
+        sentPardons.add(newPardon(2015, Calendar.JUNE, 19,
+                "max@example.com", "Max Ross", "daphne@example.com", "Daphne Ross",
+                1, "wrong toothpaste"));
+
         sentPardons.add(newPardon(2015, Calendar.JUNE, 10,
                 "max@example.com", "Max Ross", "daphne@example.com", "Daphne Ross",
                 5, "poor laundry choices"));
 
-        sentPardons.add(newPardon(2015, Calendar.JUNE, 19,
-                "max@example.com", "Max Ross", "daphne@example.com", "Daphne Ross",
-                1, "wrong toothpaste"));
+
 
         receivedPardons.add(newPardon(2014, Calendar.APRIL, 1,
                 "daphne@example.com", "Daphne Ross", "max@example.com", "Max Ross",
                 1000, "clogged toilet"));
 
-        outboundRequestedPardons.add(newPardon(2014, Calendar.OCTOBER, 10,
-                "daphne@example.com", "Daphne Ross", "max@example.com", "Max Ross",
-                4, "ate last cookie"));
 
         outboundRequestedPardons.add(newPardon(2015, Calendar.FEBRUARY, 18,
                 "violet@example.com", "Violet Ross", "max@example.com", "Max Ross",
                 23, "shoes on table"));
+
+        outboundRequestedPardons.add(newPardon(2014, Calendar.OCTOBER, 10,
+                "daphne@example.com", "Daphne Ross", "max@example.com", "Max Ross",
+                4, "ate last cookie"));
+
 
         inboundRequestedPardons.add(newPardon(2015, Calendar.AUGUST, 19,
                 "max@example.com", "Max Ross", "violet@example.com", "Violet Ross",
@@ -65,12 +72,14 @@ public class InMemoryPardonStorage implements PardonStorage {
                 pardon.getDate(),
                 pardon.getQuantity(),
                 pardon.getReason());
-        sentPardons.add(newPardon);
+        // newest goes at the front
+        sentPardons.addFirst(newPardon);
     }
 
     @Override
     public void addReceivedPardon(Pardon pardon) {
-        receivedPardons.add(pardon);
+        // newest goes at the front
+        receivedPardons.addFirst(pardon);
     }
 
     @Override
@@ -84,7 +93,8 @@ public class InMemoryPardonStorage implements PardonStorage {
                 pardon.getDate(),
                 pardon.getQuantity(),
                 pardon.getReason());
-        outboundRequestedPardons.add(newPardon);
+        // newest goest at the front
+        outboundRequestedPardons.addFirst(newPardon);
     }
 
     @Override
@@ -113,6 +123,11 @@ public class InMemoryPardonStorage implements PardonStorage {
         // no need to worry about transactional consistency here
         inboundRequestedPardons.remove(pardon);
         addSentPardon(pardon);
+    }
+
+    @Override
+    public void denyPardon(Pardon pardon) {
+        inboundRequestedPardons.remove(pardon);
     }
 
     @Override

@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="outbound_pardon_request_items">
-        <item>Daphne</item>
-        <item>Violet</item>
-        <item>Liza</item>
-        <item>Sabrina</item>
+    <string-array name="grant_dialog_items">
+        <item>Grant</item>
+        <item>Deny</item>
     </string-array>
 </resources>

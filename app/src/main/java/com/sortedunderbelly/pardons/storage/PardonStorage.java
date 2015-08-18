@@ -13,6 +13,7 @@ public interface PardonStorage {
     void addRequestedPardon(Pardon pardon);
     void deleteRequestedPardon(Pardon pardon);
     void grantPardon(Pardon pardon);
+    void denyPardon(Pardon pardon);
     List<Pardon> getSentPardons();
     List<Pardon> getReceivedPardons();
     List<Pardon> getOutboundRequestedPardons();

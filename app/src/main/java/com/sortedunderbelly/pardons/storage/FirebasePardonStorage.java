@@ -157,6 +157,12 @@ public class FirebasePardonStorage implements PardonStorage {
     }
 
     @Override
+    public void denyPardon(Pardon pardon) {
+        deletePardon(pardon);
+        inboundRequestedPardons.remove(pardon);
+    }
+
+    @Override
     public List<Pardon> getSentPardons() {
         return Collections.unmodifiableList(sentPardons);
     }

@@ -68,6 +68,8 @@ public abstract class NewPardonDialogFragment extends DialogFragment {
                         // nothing to do
                     }
                 });
+        // TODO(max.ross): Add pardon icon
+        // builder.setIcon(android.R.drawable.ic_dialog_alert);
         return builder.create();
     }
 

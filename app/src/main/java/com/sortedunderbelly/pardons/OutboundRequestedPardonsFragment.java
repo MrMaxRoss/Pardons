@@ -14,6 +14,7 @@ import android.widget.ListView;
 import java.text.DateFormat;
 import java.util.List;
 
+import static com.sortedunderbelly.pardons.Utils.getPossiblyPluralPardonString;
 import static com.sortedunderbelly.pardons.Utils.simpleErrorDialog;
 
 /**
@@ -57,6 +58,11 @@ public class OutboundRequestedPardonsFragment extends BasePardonsFragment {
 
                 // set the AlertDialog's title
                 builder.setTitle(getString(R.string.retract_request_dialog_title));
+                builder.setIcon(android.R.drawable.ic_dialog_alert);
+                builder.setMessage(String.format(getString(R.string.retract_request_dialog_message),
+                        pardon.getQuantity(),
+                        getPossiblyPluralPardonString(getResources(), pardon),
+                        pardon.getFromDisplay()));
 
                 // set the AlertDialog's negative Button
                 builder.setNegativeButton(getString(R.string.cancel),

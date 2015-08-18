@@ -119,7 +119,7 @@ public class MainActivity extends FragmentActivity {
                 recipient, recipientDisplayName, new Date(), quantity, reason);
         storage.addSentPardon(pardon);
         onSentPardon(pardon);
-        Toast.makeText(getApplicationContext(), R.string.pardonSentText,
+        Toast.makeText(getApplicationContext(), R.string.pardonsSentText,
                 Toast.LENGTH_SHORT).show();
     }
 
@@ -128,7 +128,7 @@ public class MainActivity extends FragmentActivity {
                 new Date(), quantity, reason);
         storage.addRequestedPardon(pardon);
         onRequestedPardon(pardon);
-        Toast.makeText(getApplicationContext(), R.string.pardonRequestedText,
+        Toast.makeText(getApplicationContext(), R.string.pardonsRequestedText,
                 Toast.LENGTH_SHORT).show();
     }
 
@@ -143,11 +143,22 @@ public class MainActivity extends FragmentActivity {
     public void retractPardon(Pardon pardon) {
         storage.deleteRequestedPardon(pardon);
         onRetractedPardon(pardon);
+        Toast.makeText(getApplicationContext(), R.string.pardonsRetractedText,
+                Toast.LENGTH_SHORT).show();
     }
 
     public void grantPardon(Pardon pardon) {
         storage.grantPardon(pardon);
         onGrantedPardon(pardon);
+        Toast.makeText(getApplicationContext(), R.string.pardonsGrantedText,
+                Toast.LENGTH_SHORT).show();
+    }
+
+    public void denyPardon(Pardon pardon) {
+        storage.denyPardon(pardon);
+        onDeniedPardon(pardon);
+        Toast.makeText(getApplicationContext(), R.string.pardonsDeniedText,
+                Toast.LENGTH_SHORT).show();
     }
 
     private int textToInt(TextView textView) {
@@ -190,6 +201,11 @@ public class MainActivity extends FragmentActivity {
                 InboundRequestedPardonsFragment.INBOUND_REQUESTED_PARDON_ACTION);
         updateViews(pardon.getQuantity(), sentPardonsText,
                 SentPardonsFragment.SENT_PARDON_ACTION);
+    }
+
+    public void onDeniedPardon(Pardon pardon) {
+        updateViews(-pardon.getQuantity(), inboundRequestedPardonsText,
+                InboundRequestedPardonsFragment.INBOUND_REQUESTED_PARDON_ACTION);
     }
 
     public SlidingTabsBasicFragment getTabsFragment() {

@@ -14,6 +14,7 @@ import android.widget.ListView;
 import java.text.DateFormat;
 import java.util.List;
 
+import static com.sortedunderbelly.pardons.Utils.getPossiblyPluralPardonString;
 import static com.sortedunderbelly.pardons.Utils.simpleErrorDialog;
 
 /**
@@ -56,10 +57,15 @@ public class InboundRequestedPardonsFragment extends BasePardonsFragment {
                 AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
                 // set the AlertDialog's title
-                builder.setTitle(getString(R.string.grant_request_dialog_title));
+                builder.setTitle(getString(R.string.review_request_dialog_title));
+                builder.setIcon(android.R.drawable.ic_dialog_alert);
 
-                // set the AlertDialog's negative Button
-                builder.setNegativeButton(getString(R.string.cancel),
+                builder.setMessage(String.format(getString(R.string.grant_request_dialog_message),
+                        pardon.getToDisplay(), pardon.getQuantity(),
+                        getPossiblyPluralPardonString(getResources(), pardon)));
+
+                // We map neutral to cancel because that appears on the left.
+                builder.setNeutralButton(getString(R.string.cancel),
                         new DialogInterface.OnClickListener() {
                             // called when the "Cancel" Button is clicked
                             public void onClick(DialogInterface dialog, int id) {
@@ -67,9 +73,20 @@ public class InboundRequestedPardonsFragment extends BasePardonsFragment {
                             }
                         }
                 );
-                // set the AlertDialog's positive Button
+
+                // this is the 2nd button displayed
+                builder.setNegativeButton(
+                        getString(R.string.review_request_dialog_deny_button_label),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                getMainActivity().denyPardon(pardon);
+                            }
+                        }
+                );
+
+                // this is the 3rd button displayed
                 builder.setPositiveButton(
-                        getString(R.string.grant_request_dialog_positive_button_label),
+                        getString(R.string.review_request_dialog_grant_button_label),
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 getMainActivity().grantPardon(pardon);
