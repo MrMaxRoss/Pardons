@@ -69,9 +69,8 @@ public class Pardon {
 
         Pardon pardon = (Pardon) o;
 
-        if (id != null ? !id.equals(pardon.id) : pardon.id != null) return false;
+        return !(id != null ? !id.equals(pardon.id) : pardon.id != null);
 
-        return true;
     }
 
     @Override

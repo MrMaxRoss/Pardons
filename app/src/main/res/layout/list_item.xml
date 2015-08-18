@@ -1,44 +1,43 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     android:paddingLeft="2dp"
-    android:paddingRight="2dp" >
+    android:paddingRight="2dp">
 
-    <TextView
-        android:id="@+id/pardonSourceListItem"
-        android:text="Max"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textStyle="bold"
-        android:textColor="@android:color/black"
-        android:layout_width="120dp"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/pardonListItemRow1"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentStart="false"
-        android:layout_alignParentEnd="false"
-        android:layout_centerVertical="true" />
+        android:layout_alignParentTop="true"
+        android:orientation="horizontal">
 
-    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:paddingLeft="2dp"
-        android:paddingRight="2dp"
-        android:layout_toEndOf="@id/pardonSourceListItem">
         <TextView
-            android:id="@+id/pardonDateAndQuantityListItem"
-            android:text="5 pardons on Wednesday, Jan 14, 2015"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="@android:color/black"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true" />
-        <TextView
-            android:id="@+id/pardonReasonListItem"
-            android:text="Text that is simply too long to fit on a single row"
+            android:id="@+id/pardonListItemSource"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="5 pardons from Max"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:textColor="@android:color/black"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/pardonDateAndQuantityListItem"
-            android:layout_alignParentBottom="true" />
-    </RelativeLayout>
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/pardonListItemDateTime"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="end"
+            android:text="Aug 14"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="@android:color/black" />
+    </LinearLayout>
+
+
+    <TextView
+        android:id="@+id/pardonListItemReason"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/pardonListItemRow1"
+        android:text="Text that is simply too long to fit on a single row"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textColor="@android:color/black" />
 
 </RelativeLayout>

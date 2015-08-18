@@ -37,5 +37,6 @@
     <string name="invalid_pardon_reference">Could not retrieve the selected pardon</string>
     <string name="inboundRequestedPardonsText">Requested From You:</string>
     <string name="inboundRequestedPardonsDefaultValText">0</string>
+    <string name="list_item_pardons_from_text">pardons from</string>
 
 </resources>
