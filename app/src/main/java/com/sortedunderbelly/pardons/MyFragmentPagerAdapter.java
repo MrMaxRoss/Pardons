@@ -41,20 +41,12 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
         // TODO(max.ross): Stop calling size on the returned lists. This won't scale.
         // You'll need some sort of approximation provided by the storage layer.
         fragmentData = ImmutableMap.of(
-                OutboundRequestedPardonsFragment.class,
-                new FragmentData(R.string.outbound_requested_tab_title,
+                SentPardonsFragment.class,
+                new FragmentData(R.string.send_tab_title,
                         new Callable<Integer>() {
                             @Override
                             public Integer call() throws Exception {
-                                return storage.getOutboundRequestedPardons().size();
-                            }
-                        }),
-                InboundRequestedPardonsFragment.class,
-                new FragmentData(R.string.inbound_requested_tab_title,
-                        new Callable<Integer>() {
-                            @Override
-                            public Integer call() throws Exception {
-                                return storage.getInboundRequestedPardons().size();
+                                return storage.getSentPardons().size();
                             }
                         }),
                 ReceivedPardonsFragment.class,
@@ -65,12 +57,20 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
                                 return storage.getReceivedPardons().size();
                             }
                         }),
-                SentPardonsFragment.class,
-                new FragmentData(R.string.sent_tab_title,
+                InboundRequestedPardonsFragment.class,
+                new FragmentData(R.string.inbound_requested_tab_title,
                         new Callable<Integer>() {
                             @Override
                             public Integer call() throws Exception {
-                                return storage.getSentPardons().size();
+                                return storage.getInboundRequestedPardons().size();
+                            }
+                        }),
+                OutboundRequestedPardonsFragment.class,
+                new FragmentData(R.string.outbound_requested_tab_title,
+                        new Callable<Integer>() {
+                            @Override
+                            public Integer call() throws Exception {
+                                return storage.getOutboundRequestedPardons().size();
                             }
                         }));
         fragmentClassList = ImmutableList.copyOf(fragmentData.keySet());

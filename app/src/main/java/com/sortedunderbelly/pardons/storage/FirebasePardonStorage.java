@@ -143,13 +143,13 @@ public class FirebasePardonStorage implements PardonStorage {
     }
 
     @Override
-    public void deleteRequestedPardon(Pardon pardon) {
+    public void retractRequestForPardons(Pardon pardon) {
         deletePardon(pardon);
         outboundRequestedPardons.remove(pardon);
     }
 
     @Override
-    public void grantPardon(Pardon pardon) {
+    public void acceptRequestForPardons(Pardon pardon) {
         // TODO(max.ross) Need to do this in a single txn
         deletePardon(pardon);
         inboundRequestedPardons.remove(pardon);
@@ -157,7 +157,7 @@ public class FirebasePardonStorage implements PardonStorage {
     }
 
     @Override
-    public void denyPardon(Pardon pardon) {
+    public void denyRequestForPardons(Pardon pardon) {
         deletePardon(pardon);
         inboundRequestedPardons.remove(pardon);
     }

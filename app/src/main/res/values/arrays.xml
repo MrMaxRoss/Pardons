@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="grant_dialog_items">
-        <item>Grant</item>
+    <string-array name="send_dialog_items">
+        <item>Send</item>
         <item>Deny</item>
     </string-array>
 </resources>

@@ -17,6 +17,9 @@ public class SentPardonArrayAdapter extends PardonArrayAdapter {
 
     @Override
     protected String getPardonAttribution(Pardon pardon) {
-        return pardon.getToDisplay();
+        return String.format(getContext().getString(R.string.sent_pardon_attribution_format),
+                pardon.getToDisplay(),
+                pardon.getQuantity(),
+                Utils.getPossiblyPluralPardonString(getContext().getResources(), pardon));
     }
 }

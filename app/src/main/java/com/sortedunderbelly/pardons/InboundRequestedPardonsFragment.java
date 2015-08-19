@@ -60,7 +60,7 @@ public class InboundRequestedPardonsFragment extends BasePardonsFragment {
                 builder.setTitle(getString(R.string.review_request_dialog_title));
                 builder.setIcon(android.R.drawable.ic_dialog_alert);
 
-                builder.setMessage(String.format(getString(R.string.grant_request_dialog_message),
+                builder.setMessage(String.format(getString(R.string.send_request_dialog_message),
                         pardon.getToDisplay(), pardon.getQuantity(),
                         getPossiblyPluralPardonString(getResources(), pardon)));
 
@@ -86,10 +86,10 @@ public class InboundRequestedPardonsFragment extends BasePardonsFragment {
 
                 // this is the 3rd button displayed
                 builder.setPositiveButton(
-                        getString(R.string.review_request_dialog_grant_button_label),
+                        getString(R.string.review_request_dialog_send_button_label),
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
-                                getMainActivity().grantPardon(pardon);
+                                getMainActivity().sendPardon(pardon);
                             }
                         }
                 );

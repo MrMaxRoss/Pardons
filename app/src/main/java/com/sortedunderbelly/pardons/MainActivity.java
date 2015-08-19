@@ -27,8 +27,6 @@ public class MainActivity extends FragmentActivity {
     private GoogleApiClientHelper apiClientHelper;
 
     private TextView receivedPardonsText;
-    private TextView outboundRequestedPardonsText;
-    private TextView inboundRequestedPardonsText;
     private TextView sentPardonsText;
     private PardonStorage storage;
     SlidingTabsBasicFragment tabsFragment;
@@ -43,8 +41,6 @@ public class MainActivity extends FragmentActivity {
         setContentView(R.layout.pardons_home);
         storage = InMemoryPardonStorage.getInstance();
         receivedPardonsText = (TextView) findViewById(R.id.receivedPardonsValTextView);
-        outboundRequestedPardonsText = (TextView) findViewById(R.id.outboundRequestedPardonsValTextView);
-        inboundRequestedPardonsText = (TextView) findViewById(R.id.inboundRequestedPardonsValTextView);
         sentPardonsText = (TextView) findViewById(R.id.sentPardonsValTextView);
         Button sendPardonsButton = (Button) findViewById(R.id.sendPardonButton);
         sendPardonsButton.setOnClickListener(new View.OnClickListener() {
@@ -91,12 +87,6 @@ public class MainActivity extends FragmentActivity {
 
         int totalSentPardons = calcPardonSum(storage.getSentPardons());
         sentPardonsText.setText(Integer.valueOf(totalSentPardons).toString());
-
-        int totalOutboundRequestedPardons = calcPardonSum(storage.getOutboundRequestedPardons());
-        outboundRequestedPardonsText.setText(Integer.valueOf(totalOutboundRequestedPardons).toString());
-
-        int totalInboundRequestedPardons = calcPardonSum(storage.getInboundRequestedPardons());
-        inboundRequestedPardonsText.setText(Integer.valueOf(totalInboundRequestedPardons).toString());
     }
 
     private int calcPardonSum(List<Pardon> pardons) {
@@ -141,21 +131,21 @@ public class MainActivity extends FragmentActivity {
     }
 
     public void retractPardon(Pardon pardon) {
-        storage.deleteRequestedPardon(pardon);
+        storage.retractRequestForPardons(pardon);
         onRetractedPardon(pardon);
         Toast.makeText(getApplicationContext(), R.string.pardonsRetractedText,
                 Toast.LENGTH_SHORT).show();
     }
 
-    public void grantPardon(Pardon pardon) {
-        storage.grantPardon(pardon);
-        onGrantedPardon(pardon);
-        Toast.makeText(getApplicationContext(), R.string.pardonsGrantedText,
+    public void sendPardon(Pardon pardon) {
+        storage.acceptRequestForPardons(pardon);
+        onSentPardon(pardon);
+        Toast.makeText(getApplicationContext(), R.string.pardonsSentText,
                 Toast.LENGTH_SHORT).show();
     }
 
     public void denyPardon(Pardon pardon) {
-        storage.denyPardon(pardon);
+        storage.denyRequestForPardons(pardon);
         onDeniedPardon(pardon);
         Toast.makeText(getApplicationContext(), R.string.pardonsDeniedText,
                 Toast.LENGTH_SHORT).show();
@@ -188,29 +178,12 @@ public class MainActivity extends FragmentActivity {
     }
 
     public void onRequestedPardon(Pardon newPardon) {
-        updateViews(newPardon.getQuantity(), outboundRequestedPardonsText,
-                OutboundRequestedPardonsFragment.OUTBOUND_REQUESTED_PARDON_ACTION);
     }
 
     public void onRetractedPardon(Pardon pardon) {
-        updateViews(-pardon.getQuantity(), outboundRequestedPardonsText,
-                OutboundRequestedPardonsFragment.OUTBOUND_REQUESTED_PARDON_ACTION);
-    }
-
-    public void onGrantedPardon(Pardon pardon) {
-        updateViews(-pardon.getQuantity(), inboundRequestedPardonsText,
-                InboundRequestedPardonsFragment.INBOUND_REQUESTED_PARDON_ACTION);
-        updateViews(pardon.getQuantity(), sentPardonsText,
-                SentPardonsFragment.SENT_PARDON_ACTION);
     }
 
     public void onDeniedPardon(Pardon pardon) {
-        updateViews(-pardon.getQuantity(), inboundRequestedPardonsText,
-                InboundRequestedPardonsFragment.INBOUND_REQUESTED_PARDON_ACTION);
-    }
-
-    public SlidingTabsBasicFragment getTabsFragment() {
-        return tabsFragment;
     }
 
     /**

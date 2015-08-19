@@ -38,7 +38,6 @@ public class InMemoryPardonStorage implements PardonStorage {
                 5, "poor laundry choices"));
 
 
-
         receivedPardons.add(newPardon(2014, Calendar.APRIL, 1,
                 "daphne@example.com", "Daphne Ross", "max@example.com", "Max Ross",
                 1000, "clogged toilet"));
@@ -119,28 +118,26 @@ public class InMemoryPardonStorage implements PardonStorage {
     }
 
     @Override
-    public void deleteRequestedPardon(Pardon pardon) {
+    public void retractRequestForPardons(Pardon pardon) {
         // No need for this to be efficient
         outboundRequestedPardons.remove(pardon);
     }
 
     @Override
-    public void grantPardon(Pardon pardon) {
+    public void acceptRequestForPardons(Pardon pardon) {
         // no need to worry about transactional consistency here
         inboundRequestedPardons.remove(pardon);
         addSentPardon(pardon);
     }
 
     @Override
-    public void denyPardon(Pardon pardon) {
+    public void denyRequestForPardons(Pardon pardon) {
         inboundRequestedPardons.remove(pardon);
     }
 
     @Override
     public List<Pardon> getInboundRequestedPardons() {
         return Collections.unmodifiableList(inboundRequestedPardons);
-
-
     }
 
     private String getNextId() {
