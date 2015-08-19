@@ -41,7 +41,7 @@ public class MainActivity extends FragmentActivity {
         apiClientHelper.onCreate(savedInstanceState);
 
         setContentView(R.layout.pardons_home);
-        storage = new InMemoryPardonStorage();
+        storage = InMemoryPardonStorage.getInstance();
         receivedPardonsText = (TextView) findViewById(R.id.receivedPardonsValTextView);
         outboundRequestedPardonsText = (TextView) findViewById(R.id.outboundRequestedPardonsValTextView);
         inboundRequestedPardonsText = (TextView) findViewById(R.id.inboundRequestedPardonsValTextView);
@@ -174,6 +174,7 @@ public class MainActivity extends FragmentActivity {
         textView.setText(Integer.valueOf(newPardonsTotal).toString());
         LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
         lbm.sendBroadcast(new Intent(intentAction));
+        lbm.sendBroadcast(new Intent(SlidingTabLayout.UPDATE_TAB_TITLES_INTENT_ACTION));
     }
 
     public void onSentPardon(Pardon newPardon) {

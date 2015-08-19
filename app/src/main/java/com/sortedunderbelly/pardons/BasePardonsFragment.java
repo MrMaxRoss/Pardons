@@ -47,12 +47,6 @@ public abstract class BasePardonsFragment extends Fragment {
             @Override
             public void onReceive(Context context, Intent intent) {
                 adapter.notifyDataSetChanged();
-                SlidingTabsBasicFragment tabsFragment = getMainActivity().getTabsFragment();
-                MyFragmentPagerAdapter pagerAdapter =
-                        (MyFragmentPagerAdapter) tabsFragment.getViewPager().getAdapter();
-                pagerAdapter.setTabTitleQuantity(BasePardonsFragment.this.getClass(), getPardons().size());
-                // TODO(max.ross): Update just the one tab title that we know is changing
-                tabsFragment.updateTabTitles();
             }
         }
         lbm.registerReceiver(new MyBroadcastReceiver(), filter);

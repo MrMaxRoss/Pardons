@@ -17,17 +17,6 @@ public class SlidingTabsBasicFragment extends Fragment {
     static final String LOG_TAG = "SlidingTabsFragment";
 
     /**
-     * A custom {@link ViewPager} title strip which looks much like Tabs present in Android v4.0 and
-     * above, but is designed to give continuous feedback to the user when scrolling.
-     */
-    private SlidingTabLayout slidingTabLayout;
-
-    /**
-     * A {@link ViewPager} which will be used in conjunction with the {@link SlidingTabLayout} above.
-     */
-    private ViewPager viewPager;
-
-    /**
      * Inflates the {@link View} which will be displayed by this {@link Fragment}, from the app's
      * resources.
      */
@@ -49,21 +38,20 @@ public class SlidingTabsBasicFragment extends Fragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         // Get the ViewPager and set it's PagerAdapter so that it can display items
-        viewPager = (ViewPager) view.findViewById(R.id.viewpager);
+        /*
+      A {@link ViewPager} which will be used in conjunction with the {@link SlidingTabLayout} above.
+     */
+        ViewPager viewPager = (ViewPager) view.findViewById(R.id.viewpager);
         viewPager.setAdapter(new MyFragmentPagerAdapter(
                 getFragmentManager(), (MainActivity) getActivity()));
 
         // Give the SlidingTabLayout the ViewPager, this must be done AFTER the ViewPager has had
         // its PagerAdapter set.
-        slidingTabLayout = (SlidingTabLayout) view.findViewById(R.id.sliding_tabs);
+        /*
+      A custom {@link ViewPager} title strip which looks much like Tabs present in Android v4.0 and
+      above, but is designed to give continuous feedback to the user when scrolling.
+     */
+        SlidingTabLayout slidingTabLayout = (SlidingTabLayout) view.findViewById(R.id.sliding_tabs);
         slidingTabLayout.setViewPager(viewPager);
-    }
-
-    public ViewPager getViewPager() {
-        return viewPager;
-    }
-
-    public void updateTabTitles() {
-        slidingTabLayout.updateTabTitles();
     }
 }

@@ -14,13 +14,19 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class InMemoryPardonStorage implements PardonStorage {
 
+    private static final PardonStorage INSTANCE = new InMemoryPardonStorage();
+
     private final AtomicInteger nextId = new AtomicInteger(1);
     private final LinkedList<Pardon> sentPardons = Lists.newLinkedList();
     private final LinkedList<Pardon> receivedPardons = Lists.newLinkedList();
     private final LinkedList<Pardon> outboundRequestedPardons = Lists.newLinkedList();
     private final LinkedList<Pardon> inboundRequestedPardons = Lists.newLinkedList();
 
-    public InMemoryPardonStorage() {
+    public static PardonStorage getInstance() {
+        return INSTANCE;
+    }
+
+    private InMemoryPardonStorage() {
         // Seed the database.
         // Most recent comes first.
         sentPardons.add(newPardon(2015, Calendar.JUNE, 19,

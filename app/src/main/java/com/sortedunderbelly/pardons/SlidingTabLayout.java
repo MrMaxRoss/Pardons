@@ -1,8 +1,12 @@
 package com.sortedunderbelly.pardons;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Typeface;
 import android.os.Build;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
@@ -30,6 +34,8 @@ import android.widget.TextView;
  * providing the layout ID of your custom layout.
  */
 public class SlidingTabLayout extends HorizontalScrollView {
+
+    public static final String UPDATE_TAB_TITLES_INTENT_ACTION = "update_tab_titles";
 
     /**
      * Allows complete control over the colors drawn in the tab layout. Set with
@@ -206,14 +212,22 @@ public class SlidingTabLayout extends HorizontalScrollView {
 
             mTabStrip.addView(tabView);
         }
-    }
 
-    public void updateTabTitles() {
-        PagerAdapter adapter = mViewPager.getAdapter();
-        for (int i = 0; i < adapter.getCount(); i++) {
-            TextView tabTitleTextView = (TextView) mTabStrip.getChildAt(i);
-            tabTitleTextView.setText(adapter.getPageTitle(i));
+        // Create a receiver that will refresh our tab titles
+        LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(getContext());
+        IntentFilter filter = new IntentFilter(UPDATE_TAB_TITLES_INTENT_ACTION);
+        class MyBroadcastReceiver extends BroadcastReceiver {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                PagerAdapter adapter = mViewPager.getAdapter();
+                for (int i = 0; i < adapter.getCount(); i++) {
+                    TextView tabTitleTextView = (TextView) mTabStrip.getChildAt(i);
+                    tabTitleTextView.setText(adapter.getPageTitle(i));
+                }
+            }
         }
+        lbm.registerReceiver(new MyBroadcastReceiver(), filter);
+
     }
 
     @Override

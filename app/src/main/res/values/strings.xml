@@ -6,7 +6,7 @@
     <string name="action_settings">Settings</string>
     <string name="send_pardon">Pardon Someone</string>
     <string name="send_pardon_dialog_title">Pardon Someone</string>
-    <string name="pardonReasonDefault">Reason for Pardon</string>
+    <string name="pardonReasonDefault">Reason</string>
     <string name="pardonRecipientSpinnerPrompt">Select Recipient</string>
     <string name="pardonsSentText">Sent Pardons!</string>
     <string name="pardonsRequestedText">Requested Pardons!</string>
