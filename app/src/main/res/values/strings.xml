@@ -20,6 +20,8 @@
     <string name="received_pardons_tab_title">Received</string>
     <string name="sent_pardons_tab_title">Sent</string>
     <string name="pending_inbound_requests_tab_title">Requests In</string>
+    <string name="denied_inbound_requests_tab_title">Denied Requests In</string>
+    <string name="denied_outbound_requests_tab_title">Denied Requests Out</string>
     <string name="pick_target_label">Browse</string>
     <string name="select_recipient_hint">Send Pardons to&#8230;</string>
     <string name="firebase_url">pardons.firebaseio.com</string>

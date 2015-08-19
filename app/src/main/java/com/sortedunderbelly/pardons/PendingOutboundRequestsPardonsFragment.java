@@ -22,7 +22,6 @@ import static com.sortedunderbelly.pardons.Utils.simpleErrorDialog;
  * Created by max.ross on 8/9/15.
  */
 public class PendingOutboundRequestsPardonsFragment extends BasePardonsFragment {
-    static final String PENDING_OUTBOUND_REQUESTS = "pending_outbound_requests";
 
     public static List<Pardons> getPardons(PardonStorage storage) {
         return storage.getPendingOutboundPardonsRequests();
@@ -31,11 +30,6 @@ public class PendingOutboundRequestsPardonsFragment extends BasePardonsFragment 
     @Override
     protected List<Pardons> getPardons() {
         return getPardons(getStorage());
-    }
-
-    @Override
-    protected String getIntentFilterAction() {
-        return PENDING_OUTBOUND_REQUESTS;
     }
 
     @Override

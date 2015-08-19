@@ -110,23 +110,23 @@ public class MainActivity extends FragmentActivity {
                 recipient, recipientDisplayName, new Date(), quantity, reason);
         storage.addSentPardons(pardons);
         updateViews(pardons.getQuantity(), sentPardonsText,
-                SentPardonsFragment.SENT_PARDONS_ACTION);
+                SentPardonsFragment.class.getName());
         Toast.makeText(getApplicationContext(), R.string.pardonsSentText, Toast.LENGTH_SHORT).show();
     }
 
     public void approvePardons(Pardons pardons) {
         storage.approvePardonsRequest(pardons);
         updateViews(-pardons.getQuantity(), /* stat not displayed */ null,
-                PendingInboundRequestsPardonsFragment.PENDING_INBOUND_REQUESTS);
+                PendingInboundRequestsPardonsFragment.class.getName());
         updateViews(pardons.getQuantity(), sentPardonsText,
-                SentPardonsFragment.SENT_PARDONS_ACTION);
+                SentPardonsFragment.class.getName());
         Toast.makeText(getApplicationContext(), R.string.acceptedRequestForPardonsText, Toast.LENGTH_SHORT).show();
     }
 
     public void denyPardons(Pardons pardons) {
         storage.denyPardonsRequest(pardons);
         updateViews(-pardons.getQuantity(), /* stat not displayed */ null,
-                PendingInboundRequestsPardonsFragment.PENDING_INBOUND_REQUESTS);
+                DeniedInboundRequestsPardonsFragment.class.getName());
         Toast.makeText(getApplicationContext(), R.string.deniedRequestForPardonsText, Toast.LENGTH_SHORT).show();
     }
 
@@ -137,14 +137,14 @@ public class MainActivity extends FragmentActivity {
         // If approved, these pardons will come from your friend.
         storage.addPardonsRequest(pardons);
         updateViews(pardons.getQuantity(), /* stat not displayed */ null,
-                PendingOutboundRequestsPardonsFragment.PENDING_OUTBOUND_REQUESTS);
+                PendingOutboundRequestsPardonsFragment.class.getName());
         Toast.makeText(getApplicationContext(), R.string.pardonsRequestedText, Toast.LENGTH_SHORT).show();
     }
 
     public void retractRequestForPardons(Pardons pardons) {
         storage.removePardonsRequest(pardons);
         updateViews(-pardons.getQuantity(), /* stat not displayed */ null,
-                PendingOutboundRequestsPardonsFragment.PENDING_OUTBOUND_REQUESTS);
+                PendingOutboundRequestsPardonsFragment.class.getName());
         Toast.makeText(getApplicationContext(), R.string.pardonsRetractedText, Toast.LENGTH_SHORT).show();
     }
 
@@ -152,7 +152,7 @@ public class MainActivity extends FragmentActivity {
         // not updating storage because this event is triggered by the sender of the pardon
         // making the storage change herself
         updateViews(pardons.getQuantity(), receivedPardonsText,
-                ReceivedPardonsFragment.PARDONS_FROM_FRIENDS_ACTION);
+                ReceivedPardonsFragment.class.getName());
     }
 
     private int textToInt(TextView textView) {

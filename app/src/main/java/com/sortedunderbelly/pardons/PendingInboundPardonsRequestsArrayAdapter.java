@@ -7,9 +7,9 @@ import java.util.List;
 /**
  * Created by max.ross on 8/9/15.
  */
-public class PendingPardonsArrayAdapter extends PardonsArrayAdapter {
+public class PendingInboundPardonsRequestsArrayAdapter extends PardonsArrayAdapter {
 
-    public PendingPardonsArrayAdapter(Context context, int resource, List<Pardons> pardons) {
+    public PendingInboundPardonsRequestsArrayAdapter(Context context, int resource, List<Pardons> pardons) {
         super(context, resource, pardons);
     }
 

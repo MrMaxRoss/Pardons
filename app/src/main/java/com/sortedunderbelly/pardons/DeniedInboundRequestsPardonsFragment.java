@@ -8,14 +8,12 @@ import com.sortedunderbelly.pardons.storage.PardonStorage;
 import java.util.List;
 
 /**
- * Fragment that displays pardons that the authenticated user has sent.
- *
  * Created by max.ross on 8/9/15.
  */
-public class SentPardonsFragment extends BasePardonsFragment {
+public class DeniedInboundRequestsPardonsFragment extends BasePardonsFragment {
 
     public static List<Pardons> getPardons(PardonStorage storage) {
-        return storage.getSentPardons();
+        return storage.getDeniedInboundPardonsRequests();
     }
 
     @Override
@@ -26,6 +24,6 @@ public class SentPardonsFragment extends BasePardonsFragment {
     @Override
     protected ArrayAdapter<Pardons> newPardonArrayAdapter(
             Context context, int listItemResourceId, List<Pardons> pardons) {
-        return new SentPardonsArrayAdapter(context, listItemResourceId, pardons);
+        return new PendingInboundPardonsRequestsArrayAdapter(context, listItemResourceId, pardons);
     }
 }

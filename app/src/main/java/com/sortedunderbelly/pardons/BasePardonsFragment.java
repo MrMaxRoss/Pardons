@@ -40,7 +40,7 @@ public abstract class BasePardonsFragment extends Fragment {
         // Assign adapter to ListView
         listView.setAdapter(adapter);
         LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(v.getContext());
-        IntentFilter filter = new IntentFilter(getIntentFilterAction());
+        IntentFilter filter = new IntentFilter(getClass().getName());
         class MyBroadcastReceiver extends BroadcastReceiver {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -55,9 +55,6 @@ public abstract class BasePardonsFragment extends Fragment {
             Context context, int list_item, List<Pardons> pardons);
 
     protected abstract List<Pardons> getPardons();
-
-    protected abstract String getIntentFilterAction();
-
 
     protected PardonStorage getStorage() {
         return getMainActivity().getStorage();

@@ -11,7 +11,6 @@ import java.util.List;
  * Created by max.ross on 8/9/15.
  */
 public class ReceivedPardonsFragment extends BasePardonsFragment {
-    static final String PARDONS_FROM_FRIENDS_ACTION = "pardons_from_friends";
 
     public static List<Pardons> getPardons(PardonStorage storage) {
         return storage.getReceivedPardons();
@@ -20,11 +19,6 @@ public class ReceivedPardonsFragment extends BasePardonsFragment {
     @Override
     protected List<Pardons> getPardons() {
         return getPardons(getStorage());
-    }
-
-    @Override
-    protected String getIntentFilterAction() {
-        return PARDONS_FROM_FRIENDS_ACTION;
     }
 
     @Override
