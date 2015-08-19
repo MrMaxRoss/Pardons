@@ -11,7 +11,7 @@ import java.util.Locale;
 /**
  * Created by max.ross on 8/18/15.
  */
-public class PardonArrayAdapterTest extends AndroidTestCase {
+public class PardonsArrayAdapterTest extends AndroidTestCase {
 
     private Locale originalLocale;
 
@@ -23,13 +23,13 @@ public class PardonArrayAdapterTest extends AndroidTestCase {
 
     @Override
     protected void tearDown() throws Exception {
-        PardonArrayAdapter.clearNow();
+        PardonsArrayAdapter.clearNow();
         Locale.setDefault(originalLocale);
         super.tearDown();
     }
 
     private String getDateTimeString(Calendar cal) {
-        return PardonArrayAdapter.getDateTimeString(getContext(), cal.getTime());
+        return PardonsArrayAdapter.getDateTimeString(getContext(), cal.getTime());
     }
 
     private static final ImmutableMap<String, ImmutableList<String>> resultMap = ImmutableMap.of(
@@ -37,7 +37,7 @@ public class PardonArrayAdapterTest extends AndroidTestCase {
             "de", ImmutableList.of("2:05 vorm.", "2:05 nachm.", "8:05 nachm.", "17. Aug.", "17. Feb.", "09.07.14"));
 
     private void testGetDateTimeString(String language, String country) {
-        PardonArrayAdapter.setNow(cal(2015, Calendar.AUGUST, 18, 14, 5, 33));
+        PardonsArrayAdapter.setNow(cal(2015, Calendar.AUGUST, 18, 14, 5, 33));
         setLocale(language, country);
 
         int resultIndex = 0;
@@ -47,7 +47,7 @@ public class PardonArrayAdapterTest extends AndroidTestCase {
 
         // input is right now
         assertEquals(resultMap.get(language).get(resultIndex++), getDateTimeString(
-                PardonArrayAdapter.getNow()));
+                PardonsArrayAdapter.getNow()));
 
         // input is later today (shouldn't happen but lets make sure we can handle clock skew)
         assertEquals(resultMap.get(language).get(resultIndex++), getDateTimeString(

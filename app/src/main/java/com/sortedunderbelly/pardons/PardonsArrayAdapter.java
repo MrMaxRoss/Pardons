@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * Created by max.ross on 8/9/15.
  */
-public abstract class PardonArrayAdapter extends ArrayAdapter<Pardon> {
+public abstract class PardonsArrayAdapter extends ArrayAdapter<Pardons> {
     static Calendar now = null;
 
     static Calendar getNow() {
@@ -25,15 +25,15 @@ public abstract class PardonArrayAdapter extends ArrayAdapter<Pardon> {
     }
 
     static void setNow(Calendar now) {
-        PardonArrayAdapter.now = now;
+        PardonsArrayAdapter.now = now;
     }
 
     static void clearNow() {
         now = null;
     }
 
-    public PardonArrayAdapter(
-            Context context, int resource, List<Pardon> pardons, DateFormat dateFormat) {
+    public PardonsArrayAdapter(
+            Context context, int resource, List<Pardons> pardons) {
         super(context, resource, pardons);
     }
 
@@ -46,16 +46,16 @@ public abstract class PardonArrayAdapter extends ArrayAdapter<Pardon> {
             view = vi.inflate(R.layout.list_item, null);
         }
 
-        Pardon pardon = getItem(position);
+        Pardons pardons = getItem(position);
 
-        if (pardon != null) {
+        if (pardons != null) {
             TextView pardonDateTime = (TextView) view.findViewById(R.id.pardonListItemDateTime);
             TextView pardonSource = (TextView) view.findViewById(R.id.pardonListItemSource);
             TextView pardonReason = (TextView) view.findViewById(R.id.pardonListItemReason);
 
-            pardonDateTime.setText(getDateTimeString(getContext(),pardon.getDate()));
-            pardonSource.setText(getPardonAttribution(pardon));
-            pardonReason.setText(pardon.getReason());
+            pardonDateTime.setText(getDateTimeString(getContext(), pardons.getDate()));
+            pardonSource.setText(getPardonAttribution(pardons));
+            pardonReason.setText(pardons.getReason());
         }
         if (position % 2 == 1) {
             view.setBackgroundColor(getContext().getResources().getColor(
@@ -70,7 +70,6 @@ public abstract class PardonArrayAdapter extends ArrayAdapter<Pardon> {
     static String getDateTimeString(Context context, Date date) {
         Calendar thenCal = new GregorianCalendar();
         thenCal.setTime(date);
-        Date thenDate = thenCal.getTime();
         Calendar nowCal = getNow();
 
         if (thenCal.get(Calendar.YEAR) == nowCal.get(Calendar.YEAR)) {
@@ -90,6 +89,6 @@ public abstract class PardonArrayAdapter extends ArrayAdapter<Pardon> {
         }
     }
 
-    protected abstract String getPardonAttribution(Pardon pardon);
+    protected abstract String getPardonAttribution(Pardons pardons);
 
 }

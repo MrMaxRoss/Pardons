@@ -35,44 +35,45 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
 
 
     public MyFragmentPagerAdapter(FragmentManager fm, MainActivity activity) {
-        super (fm);
+        super(fm);
         this.activity = activity;
         final PardonStorage storage = activity.getStorage();
         // TODO(max.ross): Stop calling size on the returned lists. This won't scale.
         // You'll need some sort of approximation provided by the storage layer.
         fragmentData = ImmutableMap.of(
-                SentPardonsFragment.class,
-                new FragmentData(R.string.send_tab_title,
-                        new Callable<Integer>() {
-                            @Override
-                            public Integer call() throws Exception {
-                                return storage.getSentPardons().size();
-                            }
-                        }),
                 ReceivedPardonsFragment.class,
-                new FragmentData(R.string.received_tab_title,
+                new FragmentData(R.string.received_pardons_tab_title,
                         new Callable<Integer>() {
                             @Override
                             public Integer call() throws Exception {
-                                return storage.getReceivedPardons().size();
+                                return ReceivedPardonsFragment.getPardons(storage).size();
                             }
                         }),
-                InboundRequestedPardonsFragment.class,
-                new FragmentData(R.string.inbound_requested_tab_title,
+                SentPardonsFragment.class,
+                new FragmentData(R.string.sent_pardons_tab_title,
                         new Callable<Integer>() {
                             @Override
                             public Integer call() throws Exception {
-                                return storage.getInboundRequestedPardons().size();
+                                return SentPardonsFragment.getPardons(storage).size();
                             }
                         }),
-                OutboundRequestedPardonsFragment.class,
-                new FragmentData(R.string.outbound_requested_tab_title,
+                PendingInboundRequestsPardonsFragment.class,
+                new FragmentData(R.string.pending_inbound_requests_tab_title,
                         new Callable<Integer>() {
                             @Override
                             public Integer call() throws Exception {
-                                return storage.getOutboundRequestedPardons().size();
+                                return PendingInboundRequestsPardonsFragment.getPardons(storage).size();
                             }
-                        }));
+                        }),
+                PendingOutboundRequestsPardonsFragment.class,
+                new FragmentData(R.string.pending_outbound_requests_tab_title,
+                        new Callable<Integer>() {
+                            @Override
+                            public Integer call() throws Exception {
+                                return PendingOutboundRequestsPardonsFragment.getPardons(storage).size();
+                            }
+                        })
+        );
         fragmentClassList = ImmutableList.copyOf(fragmentData.keySet());
     }
 

@@ -10,7 +10,7 @@ import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.google.common.collect.Maps;
 import com.sortedunderbelly.pardons.MainActivity;
-import com.sortedunderbelly.pardons.Pardon;
+import com.sortedunderbelly.pardons.Pardons;
 import com.sortedunderbelly.pardons.R;
 
 import java.util.ArrayList;
@@ -27,20 +27,12 @@ public class FirebasePardonStorage implements PardonStorage {
 
     private static final String USER_DATA_PATH = "users";
 
-    private enum PardonType {
-        SENT,
-        RECEIVED,
-        REQUESTED
-    }
-
     private final MainActivity activity;
     private String userId;
     private final Firebase firebaseRef;
 
-    private final List<Pardon> sentPardons = new ArrayList<>();
-    private final List<Pardon> receivedPardons = new ArrayList<>();
-    private final List<Pardon> outboundRequestedPardons = new ArrayList<>();
-    private final List<Pardon> inboundRequestedPardons = new ArrayList<>();
+    private final List<Pardons> sentPardons = new ArrayList<>();
+    private final List<Pardons> receivedPardons = new ArrayList<>();
 
     private final Firebase.AuthResultHandler authResultHandler = new AuthResultHandler();
     private ChildEventListener pardonListener;
@@ -76,8 +68,8 @@ public class FirebasePardonStorage implements PardonStorage {
         return firebaseRef.child(String.format("%s/%s", USER_DATA_PATH, userId));
     }
 
-    static Pardon toPardon(String id, Map<String, Object> pardonData) {
-        return new Pardon(
+    static Pardons toPardon(String id, Map<String, Object> pardonData) {
+        return new Pardons(
                 id,
                 (String) pardonData.get("from"),
                 (String) pardonData.get("from_display"),
@@ -87,7 +79,6 @@ public class FirebasePardonStorage implements PardonStorage {
                 ((Long) pardonData.get("quantity")).intValue(),
                 (String) pardonData.get("reason"));
     }
-
 
     /**
      * Utility class for authentication results
@@ -106,80 +97,73 @@ public class FirebasePardonStorage implements PardonStorage {
     }
 
 
-    private void savePardon(Pardon pardon, PardonType type) {
+    private void savePardon(Pardons pardons) {
         Map<String, Object> pardonData = Maps.newHashMap();
-        pardonData.put("from", pardon.getFrom());
-        pardonData.put("from_display", pardon.getFromDisplay());
-        pardonData.put("to", pardon.getTo());
-        pardonData.put("to_display", pardon.getToDisplay());
-        pardonData.put("date", pardon.getDate().getTime());
-        pardonData.put("quantity", pardon.getQuantity());
-        pardonData.put("reason", pardon.getReason());
-        pardonData.put("pardon_type", type.name());
-
-        getPardonsRef().push().setValue(pardonData);
-    }
-
-    private void deletePardon(Pardon pardon) {
-        throw new UnsupportedOperationException();
+        pardonData.put("from", pardons.getFrom());
+        pardonData.put("from_display", pardons.getFromDisplay());
+        pardonData.put("to", pardons.getTo());
+        pardonData.put("to_display", pardons.getToDisplay());
+        pardonData.put("date", pardons.getDate().getTime());
+        pardonData.put("quantity", pardons.getQuantity());
+        pardonData.put("reason", pardons.getReason());
     }
 
     @Override
-    public void addSentPardon(Pardon pardon) {
-        savePardon(pardon, PardonType.SENT);
-        sentPardons.add(pardon);
+    public void addReceivedPardons(Pardons pardons) {
     }
 
     @Override
-    public void addReceivedPardon(Pardon pardon) {
-        savePardon(pardon, PardonType.RECEIVED);
-        receivedPardons.add(pardon);
+    public void addSentPardons(Pardons pardons) {
     }
 
     @Override
-    public void addRequestedPardon(Pardon pardon) {
-        savePardon(pardon, PardonType.REQUESTED);
-        outboundRequestedPardons.add(pardon);
-    }
-
-    @Override
-    public void retractRequestForPardons(Pardon pardon) {
-        deletePardon(pardon);
-        outboundRequestedPardons.remove(pardon);
-    }
-
-    @Override
-    public void acceptRequestForPardons(Pardon pardon) {
-        // TODO(max.ross) Need to do this in a single txn
-        deletePardon(pardon);
-        inboundRequestedPardons.remove(pardon);
-        addRequestedPardon(pardon);
-    }
-
-    @Override
-    public void denyRequestForPardons(Pardon pardon) {
-        deletePardon(pardon);
-        inboundRequestedPardons.remove(pardon);
-    }
-
-    @Override
-    public List<Pardon> getSentPardons() {
+    public List<Pardons> getSentPardons() {
         return Collections.unmodifiableList(sentPardons);
     }
 
     @Override
-    public List<Pardon> getReceivedPardons() {
+    public List<Pardons> getReceivedPardons() {
         return Collections.unmodifiableList(receivedPardons);
     }
 
     @Override
-    public List<Pardon> getOutboundRequestedPardons() {
-        return Collections.unmodifiableList(outboundRequestedPardons);
+    public List<Pardons> getPendingOutboundPardonsRequests() {
+        return null;
     }
 
     @Override
-    public List<Pardon> getInboundRequestedPardons() {
-        return Collections.unmodifiableList(inboundRequestedPardons);
+    public List<Pardons> getDeniedOutboundPardonsRequests() {
+        return null;
+    }
+
+    @Override
+    public void addPardonsRequest(Pardons pardons) {
+
+    }
+
+    @Override
+    public void removePardonsRequest(Pardons pardons) {
+
+    }
+
+    @Override
+    public List<Pardons> getPendingInboundPardonsRequests() {
+        return null;
+    }
+
+    @Override
+    public List<Pardons> getDeniedInboundPardonsRequests() {
+        return null;
+    }
+
+    @Override
+    public void approvePardonsRequest(Pardons pardonsRequest) {
+
+    }
+
+    @Override
+    public void denyPardonsRequest(Pardons pardonsRequest) {
+
     }
 
     private void attachPardonListeners() {
@@ -187,19 +171,6 @@ public class FirebasePardonStorage implements PardonStorage {
         ChildEventListener pardonListener = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String previousChild) {
-                Map<String, Object> map = mapFromSnapshot(dataSnapshot);
-                Pardon newPardon = toPardon(dataSnapshot.getKey(), mapFromSnapshot(dataSnapshot));
-                switch (PardonType.valueOf((String) map.get("pardon_type"))) {
-                    case SENT:
-                        sentPardons.add(newPardon);
-                        activity.onSentPardon(newPardon);
-                    case RECEIVED:
-                        receivedPardons.add(newPardon);
-                        activity.onReceivedPardon(newPardon);
-                    case REQUESTED:
-                        outboundRequestedPardons.add(newPardon);
-                        activity.onRequestedPardon(newPardon);
-                }
             }
 
             @Override

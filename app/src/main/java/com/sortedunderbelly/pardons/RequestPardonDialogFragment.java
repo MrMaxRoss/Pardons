@@ -17,6 +17,6 @@ public class RequestPardonDialogFragment extends NewPardonDialogFragment {
 
     @Override
     protected void onNewPardonClick(String phoneNumber, String displayName, int quantity, String reason) {
-        getMainActivity().requestPardon(phoneNumber, displayName, quantity, reason);
+        getMainActivity().requestPardons(phoneNumber, displayName, quantity, reason);
     }
 }

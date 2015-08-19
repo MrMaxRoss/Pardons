@@ -15,7 +15,6 @@ import android.widget.ListView;
 
 import com.sortedunderbelly.pardons.storage.PardonStorage;
 
-import java.text.DateFormat;
 import java.util.List;
 
 /**
@@ -33,11 +32,10 @@ public abstract class BasePardonsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.pardons_list, container, false);
-        DateFormat listItemDateFormat = android.text.format.DateFormat.getDateFormat(v.getContext());
         ListView listView = (ListView) v.findViewById(R.id.pardons_listview);
 
-        final ArrayAdapter<Pardon> adapter = newPardonArrayAdapter(
-                v.getContext(), R.layout.list_item, getPardons(), listItemDateFormat);
+        final ArrayAdapter<Pardons> adapter = newPardonArrayAdapter(
+                v.getContext(), R.layout.list_item, getPardons());
 
         // Assign adapter to ListView
         listView.setAdapter(adapter);
@@ -53,10 +51,10 @@ public abstract class BasePardonsFragment extends Fragment {
         return v;
     }
 
-    protected abstract ArrayAdapter<Pardon> newPardonArrayAdapter(
-            Context context, int list_item, List<Pardon> pardons, DateFormat listItemDateFormat);
+    protected abstract ArrayAdapter<Pardons> newPardonArrayAdapter(
+            Context context, int list_item, List<Pardons> pardons);
 
-    protected abstract List<Pardon> getPardons();
+    protected abstract List<Pardons> getPardons();
 
     protected abstract String getIntentFilterAction();
 

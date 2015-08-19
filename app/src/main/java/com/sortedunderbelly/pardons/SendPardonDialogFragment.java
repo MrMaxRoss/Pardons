@@ -17,6 +17,6 @@ public class SendPardonDialogFragment extends NewPardonDialogFragment {
 
     @Override
     protected void onNewPardonClick(String phoneNumber, String displayName, int quantity, String reason) {
-        getMainActivity().sendPardon(phoneNumber, displayName, quantity, reason);
+        getMainActivity().sendPardonsToFriend(phoneNumber, displayName, quantity, reason);
     }
 }

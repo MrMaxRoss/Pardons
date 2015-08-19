@@ -21,8 +21,8 @@ public class Utils {
         simpleErrorDialog(activity, resources.getString(messageId));
     }
 
-    public static String getPossiblyPluralPardonString(Resources res, Pardon pardon) {
-        return pardon.getQuantity() == 1 ?
+    public static String getPossiblyPluralPardonString(Resources res, Pardons pardons) {
+        return pardons.getQuantity() == 1 ?
                 res.getString(R.string.singular_pardon_string) :
                 res.getString(R.string.plural_pardon_string);
     }

@@ -11,7 +11,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-import java.text.DateFormat;
+import com.sortedunderbelly.pardons.storage.PardonStorage;
+
 import java.util.List;
 
 import static com.sortedunderbelly.pardons.Utils.getPossiblyPluralPardonString;
@@ -20,24 +21,28 @@ import static com.sortedunderbelly.pardons.Utils.simpleErrorDialog;
 /**
  * Created by max.ross on 8/9/15.
  */
-public class InboundRequestedPardonsFragment extends BasePardonsFragment {
-    static final String INBOUND_REQUESTED_PARDON_ACTION = "inbound_requested_pardon";
+public class PendingOutboundRequestsPardonsFragment extends BasePardonsFragment {
+    static final String PENDING_OUTBOUND_REQUESTS = "pending_outbound_requests";
+
+    public static List<Pardons> getPardons(PardonStorage storage) {
+        return storage.getPendingOutboundPardonsRequests();
+    }
 
     @Override
-    protected List<Pardon> getPardons() {
-        return getStorage().getInboundRequestedPardons();
+    protected List<Pardons> getPardons() {
+        return getPardons(getStorage());
     }
 
     @Override
     protected String getIntentFilterAction() {
-        return INBOUND_REQUESTED_PARDON_ACTION;
+        return PENDING_OUTBOUND_REQUESTS;
     }
 
     @Override
-    protected ArrayAdapter<Pardon> newPardonArrayAdapter(
-            Context context, int listItemResourceId, List<Pardon> pardons, DateFormat listItemDateFormat) {
-        // We use the Sent adapter because it's the exact same display
-        return new SentPardonArrayAdapter(context, listItemResourceId, pardons, listItemDateFormat);
+    protected ArrayAdapter<Pardons> newPardonArrayAdapter(
+            Context context, int listItemResourceId, List<Pardons> pardons) {
+        // We use the Received adapter because it's the exact same display
+        return new ReceivedPardonsArrayAdapter(context, listItemResourceId, pardons);
     }
 
     @Override
@@ -47,8 +52,8 @@ public class InboundRequestedPardonsFragment extends BasePardonsFragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                final Pardon pardon = (Pardon) listView.getAdapter().getItem(position);
-                if (pardon == null) {
+                final Pardons pardons = (Pardons) listView.getAdapter().getItem(position);
+                if (pardons == null) {
                     simpleErrorDialog(getActivity(), getResources(), R.string.invalid_pardon_reference);
                     return;
                 }
@@ -57,15 +62,15 @@ public class InboundRequestedPardonsFragment extends BasePardonsFragment {
                 AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
                 // set the AlertDialog's title
-                builder.setTitle(getString(R.string.review_request_dialog_title));
+                builder.setTitle(getString(R.string.retract_request_dialog_title));
                 builder.setIcon(android.R.drawable.ic_dialog_alert);
+                builder.setMessage(String.format(getString(R.string.retract_request_dialog_message),
+                        pardons.getQuantity(),
+                        getPossiblyPluralPardonString(getResources(), pardons),
+                        pardons.getFromDisplay()));
 
-                builder.setMessage(String.format(getString(R.string.send_request_dialog_message),
-                        pardon.getToDisplay(), pardon.getQuantity(),
-                        getPossiblyPluralPardonString(getResources(), pardon)));
-
-                // We map neutral to cancel because that appears on the left.
-                builder.setNeutralButton(getString(R.string.cancel),
+                // set the AlertDialog's negative Button
+                builder.setNegativeButton(getString(R.string.cancel),
                         new DialogInterface.OnClickListener() {
                             // called when the "Cancel" Button is clicked
                             public void onClick(DialogInterface dialog, int id) {
@@ -73,23 +78,12 @@ public class InboundRequestedPardonsFragment extends BasePardonsFragment {
                             }
                         }
                 );
-
-                // this is the 2nd button displayed
-                builder.setNegativeButton(
-                        getString(R.string.review_request_dialog_deny_button_label),
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                getMainActivity().denyPardon(pardon);
-                            }
-                        }
-                );
-
-                // this is the 3rd button displayed
+                // set the AlertDialog's positive Button
                 builder.setPositiveButton(
-                        getString(R.string.review_request_dialog_send_button_label),
+                        getString(R.string.retract_request_dialog_positive_button_label),
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
-                                getMainActivity().sendPardon(pardon);
+                                getMainActivity().retractRequestForPardons(pardons);
                             }
                         }
                 );

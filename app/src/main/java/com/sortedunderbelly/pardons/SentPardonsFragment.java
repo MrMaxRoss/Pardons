@@ -3,7 +3,8 @@ package com.sortedunderbelly.pardons;
 import android.content.Context;
 import android.widget.ArrayAdapter;
 
-import java.text.DateFormat;
+import com.sortedunderbelly.pardons.storage.PardonStorage;
+
 import java.util.List;
 
 /**
@@ -13,21 +14,25 @@ import java.util.List;
  */
 public class SentPardonsFragment extends BasePardonsFragment {
 
-    static final String SENT_PARDON_ACTION = "sent_pardon";
+    static final String SENT_PARDONS_ACTION = "pardons_for_friends";
+
+    public static List<Pardons> getPardons(PardonStorage storage) {
+        return storage.getSentPardons();
+    }
 
     @Override
-    protected List<Pardon> getPardons() {
-        return getStorage().getSentPardons();
+    protected List<Pardons> getPardons() {
+        return getPardons(getStorage());
     }
 
     @Override
     protected String getIntentFilterAction() {
-        return SENT_PARDON_ACTION;
+        return SENT_PARDONS_ACTION;
     }
 
     @Override
-    protected ArrayAdapter<Pardon> newPardonArrayAdapter(
-            Context context, int listItemResourceId, List<Pardon> pardons, DateFormat listItemDateFormat) {
-        return new SentPardonArrayAdapter(context, listItemResourceId, pardons, listItemDateFormat);
+    protected ArrayAdapter<Pardons> newPardonArrayAdapter(
+            Context context, int listItemResourceId, List<Pardons> pardons) {
+        return new SentPardonsArrayAdapter(context, listItemResourceId, pardons);
     }
 }

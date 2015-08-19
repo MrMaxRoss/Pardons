@@ -3,6 +3,7 @@ package com.sortedunderbelly.pardons;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -89,9 +90,9 @@ public class MainActivity extends FragmentActivity {
         sentPardonsText.setText(Integer.valueOf(totalSentPardons).toString());
     }
 
-    private int calcPardonSum(List<Pardon> pardons) {
+    private int calcPardonSum(List<Pardons> pardons) {
         int total = 0;
-        for (Pardon p : pardons) {
+        for (Pardons p : pardons) {
             total += p.getQuantity();
         }
         return total;
@@ -104,51 +105,54 @@ public class MainActivity extends FragmentActivity {
 
     private String getAuthenticatedDisplayName() { return "Me"; }
 
-    public void sendPardon(String recipient, String recipientDisplayName, int quantity, String reason) {
-        Pardon pardon = new Pardon(getAuthenticatedUsername(), getAuthenticatedDisplayName(),
+    public void sendPardonsToFriend(String recipient, String recipientDisplayName, int quantity, String reason) {
+        Pardons pardons = new Pardons(getAuthenticatedUsername(), getAuthenticatedDisplayName(),
                 recipient, recipientDisplayName, new Date(), quantity, reason);
-        storage.addSentPardon(pardon);
-        onSentPardon(pardon);
-        Toast.makeText(getApplicationContext(), R.string.pardonsSentText,
-                Toast.LENGTH_SHORT).show();
+        storage.addSentPardons(pardons);
+        updateViews(pardons.getQuantity(), sentPardonsText,
+                SentPardonsFragment.SENT_PARDONS_ACTION);
+        Toast.makeText(getApplicationContext(), R.string.pardonsSentText, Toast.LENGTH_SHORT).show();
     }
 
-    public void requestPardon(String recipient, String recipientDisplayName, int quantity, String reason) {
-        Pardon pardon = new Pardon(recipient, recipientDisplayName, getAuthenticatedUsername(), getAuthenticatedDisplayName(),
-                new Date(), quantity, reason);
-        storage.addRequestedPardon(pardon);
-        onRequestedPardon(pardon);
-        Toast.makeText(getApplicationContext(), R.string.pardonsRequestedText,
-                Toast.LENGTH_SHORT).show();
+    public void approvePardons(Pardons pardons) {
+        storage.approvePardonsRequest(pardons);
+        updateViews(-pardons.getQuantity(), /* stat not displayed */ null,
+                PendingInboundRequestsPardonsFragment.PENDING_INBOUND_REQUESTS);
+        updateViews(pardons.getQuantity(), sentPardonsText,
+                SentPardonsFragment.SENT_PARDONS_ACTION);
+        Toast.makeText(getApplicationContext(), R.string.acceptedRequestForPardonsText, Toast.LENGTH_SHORT).show();
     }
 
-    private void receivePardon(String id, String sender, String senderDisplayName, Date date,
-                               int quantity, String reason) {
-        Pardon pardon = new Pardon(id, sender, senderDisplayName, getAuthenticatedUsername(),
-                getAuthenticatedDisplayName(), date, quantity, reason);
-        storage.addReceivedPardon(pardon);
-        onReceivedPardon(pardon);
+    public void denyPardons(Pardons pardons) {
+        storage.denyPardonsRequest(pardons);
+        updateViews(-pardons.getQuantity(), /* stat not displayed */ null,
+                PendingInboundRequestsPardonsFragment.PENDING_INBOUND_REQUESTS);
+        Toast.makeText(getApplicationContext(), R.string.deniedRequestForPardonsText, Toast.LENGTH_SHORT).show();
     }
 
-    public void retractPardon(Pardon pardon) {
-        storage.retractRequestForPardons(pardon);
-        onRetractedPardon(pardon);
-        Toast.makeText(getApplicationContext(), R.string.pardonsRetractedText,
-                Toast.LENGTH_SHORT).show();
+    public void requestPardons(String recipient, String recipientDisplayName, int quantity,
+                               String reason) {
+        Pardons pardons = new Pardons(recipient, recipientDisplayName, getAuthenticatedUsername(),
+                getAuthenticatedDisplayName(), new Date(), quantity, reason);
+        // If approved, these pardons will come from your friend.
+        storage.addPardonsRequest(pardons);
+        updateViews(pardons.getQuantity(), /* stat not displayed */ null,
+                PendingOutboundRequestsPardonsFragment.PENDING_OUTBOUND_REQUESTS);
+        Toast.makeText(getApplicationContext(), R.string.pardonsRequestedText, Toast.LENGTH_SHORT).show();
     }
 
-    public void sendPardon(Pardon pardon) {
-        storage.acceptRequestForPardons(pardon);
-        onSentPardon(pardon);
-        Toast.makeText(getApplicationContext(), R.string.pardonsSentText,
-                Toast.LENGTH_SHORT).show();
+    public void retractRequestForPardons(Pardons pardons) {
+        storage.removePardonsRequest(pardons);
+        updateViews(-pardons.getQuantity(), /* stat not displayed */ null,
+                PendingOutboundRequestsPardonsFragment.PENDING_OUTBOUND_REQUESTS);
+        Toast.makeText(getApplicationContext(), R.string.pardonsRetractedText, Toast.LENGTH_SHORT).show();
     }
 
-    public void denyPardon(Pardon pardon) {
-        storage.denyRequestForPardons(pardon);
-        onDeniedPardon(pardon);
-        Toast.makeText(getApplicationContext(), R.string.pardonsDeniedText,
-                Toast.LENGTH_SHORT).show();
+    public void receivePardonsFromFriend(Pardons pardons) {
+        // not updating storage because this event is triggered by the sender of the pardon
+        // making the storage change herself
+        updateViews(pardons.getQuantity(), receivedPardonsText,
+                ReceivedPardonsFragment.PARDONS_FROM_FRIENDS_ACTION);
     }
 
     private int textToInt(TextView textView) {
@@ -159,31 +163,14 @@ public class MainActivity extends FragmentActivity {
         return storage;
     }
 
-    private void updateViews(int pardonsDelta, TextView textView, String intentAction) {
-        int newPardonsTotal = textToInt(textView) + pardonsDelta;
-        textView.setText(Integer.valueOf(newPardonsTotal).toString());
+    private void updateViews(int pardonsDelta, @Nullable TextView textView, String intentAction) {
+        if (textView != null) {
+            int newPardonsTotal = textToInt(textView) + pardonsDelta;
+            textView.setText(Integer.valueOf(newPardonsTotal).toString());
+        }
         LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
         lbm.sendBroadcast(new Intent(intentAction));
         lbm.sendBroadcast(new Intent(SlidingTabLayout.UPDATE_TAB_TITLES_INTENT_ACTION));
-    }
-
-    public void onSentPardon(Pardon newPardon) {
-        updateViews(newPardon.getQuantity(), sentPardonsText,
-                SentPardonsFragment.SENT_PARDON_ACTION);
-    }
-
-    public void onReceivedPardon(Pardon newPardon) {
-        updateViews(newPardon.getQuantity(), receivedPardonsText,
-                ReceivedPardonsFragment.RECEIVED_PARDON_ACTION);
-    }
-
-    public void onRequestedPardon(Pardon newPardon) {
-    }
-
-    public void onRetractedPardon(Pardon pardon) {
-    }
-
-    public void onDeniedPardon(Pardon pardon) {
     }
 
     /**

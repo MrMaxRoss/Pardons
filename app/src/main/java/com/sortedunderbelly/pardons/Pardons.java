@@ -5,7 +5,7 @@ import java.util.Date;
 /**
  * Created by max.ross on 3/7/15.
  */
-public class Pardon {
+public class Pardons {
     private final String id;
     private final String from;
     private final String fromDisplay;
@@ -15,7 +15,8 @@ public class Pardon {
     private final int quantity;
     private final String reason;
 
-    public Pardon(String id, String from, String fromDisplay, String to, String toDisplay, Date date, int quantity, String reason) {
+    public Pardons(String id, String from, String fromDisplay, String to,
+                   String toDisplay, Date date, int quantity, String reason) {
         this.id = id;
         this.from = from;
         this.fromDisplay = fromDisplay;
@@ -26,7 +27,8 @@ public class Pardon {
         this.reason = reason;
     }
 
-    public Pardon(String from, String fromDisplay, String to, String toDisplay, Date date, int quantity, String reason) {
+    public Pardons(String from, String fromDisplay, String to, String toDisplay,
+                   Date date, int quantity, String reason) {
         this(null, from, fromDisplay, to, toDisplay, date, quantity, reason);
     }
 
@@ -67,9 +69,9 @@ public class Pardon {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Pardon pardon = (Pardon) o;
+        Pardons pardons = (Pardons) o;
 
-        return !(id != null ? !id.equals(pardon.id) : pardon.id != null);
+        return !(id != null ? !id.equals(pardons.id) : pardons.id != null);
 
     }
 
