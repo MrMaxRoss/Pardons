@@ -3,7 +3,6 @@ package com.sortedunderbelly.pardons;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -16,20 +15,21 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.sortedunderbelly.pardons.storage.InMemoryPardonStorage;
+import com.sortedunderbelly.pardons.storage.FirebasePardonStorage;
 import com.sortedunderbelly.pardons.storage.PardonStorage;
 
 import java.util.Date;
 import java.util.List;
 
 
-public class MainActivity extends FragmentActivity {
+public class MainActivity extends FragmentActivity implements PardonStorage.PardonsUIListener {
+
+    private static PardonStorage storage;
 
     private GoogleApiClientHelper apiClientHelper;
 
     private TextView receivedPardonsText;
     private TextView sentPardonsText;
-    private PardonStorage storage;
     SlidingTabsBasicFragment tabsFragment;
 
 
@@ -40,7 +40,12 @@ public class MainActivity extends FragmentActivity {
         apiClientHelper.onCreate(savedInstanceState);
 
         setContentView(R.layout.pardons_home);
-        storage = InMemoryPardonStorage.getInstance();
+        if (storage == null) {
+            // this seems like a bad idea, but how do I keep from reiniitializing Firebase
+            // every time a new activity is created?
+            storage = new FirebasePardonStorage(this, this);
+        }
+//        storage = InMemoryPardonStorage.get();
         receivedPardonsText = (TextView) findViewById(R.id.receivedPardonsValTextView);
         sentPardonsText = (TextView) findViewById(R.id.sentPardonsValTextView);
         Button sendPardonsButton = (Button) findViewById(R.id.sendPardonButton);
@@ -105,29 +110,44 @@ public class MainActivity extends FragmentActivity {
 
     private String getAuthenticatedDisplayName() { return "Me"; }
 
-    public void sendPardonsToFriend(String recipient, String recipientDisplayName, int quantity, String reason) {
-        Pardons pardons = new Pardons(getAuthenticatedUsername(), getAuthenticatedDisplayName(),
-                recipient, recipientDisplayName, new Date(), quantity, reason);
-        storage.addSentPardons(pardons);
+    @Override
+    public void onAddSentPardons(Pardons pardons) {
         updateViews(pardons.getQuantity(), sentPardonsText,
-                SentPardonsFragment.class.getName());
-        Toast.makeText(getApplicationContext(), R.string.pardonsSentText, Toast.LENGTH_SHORT).show();
+                SentPardonsFragment.class);
+    }
+
+    @Override
+    public void onApprovePardonsRequest(Pardons pardonsRequest) {
+        sendUpdate(PendingInboundRequestsPardonsFragment.class);
+        updateViews(pardonsRequest.getQuantity(), sentPardonsText,
+                SentPardonsFragment.class);
     }
 
     public void approvePardons(Pardons pardons) {
-        storage.approvePardonsRequest(pardons);
-        updateViews(-pardons.getQuantity(), /* stat not displayed */ null,
-                PendingInboundRequestsPardonsFragment.class.getName());
-        updateViews(pardons.getQuantity(), sentPardonsText,
-                SentPardonsFragment.class.getName());
+        storage.approvePardonsRequest(pardons, this);
         Toast.makeText(getApplicationContext(), R.string.acceptedRequestForPardonsText, Toast.LENGTH_SHORT).show();
     }
 
+    public void sendPardonsToFriend(String recipient, String recipientDisplayName, int quantity, String reason) {
+        Pardons pardons = new Pardons(getAuthenticatedUsername(), getAuthenticatedDisplayName(),
+                recipient, recipientDisplayName, new Date(), quantity, reason);
+        storage.addSentPardons(pardons, this);
+        Toast.makeText(getApplicationContext(), R.string.pardonsSentText, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onDenyPardonsRequest(Pardons pardonsRequest) {
+        sendUpdate(DeniedInboundRequestsPardonsFragment.class);
+    }
+
     public void denyPardons(Pardons pardons) {
-        storage.denyPardonsRequest(pardons);
-        updateViews(-pardons.getQuantity(), /* stat not displayed */ null,
-                DeniedInboundRequestsPardonsFragment.class.getName());
+        storage.denyPardonsRequest(pardons, this);
         Toast.makeText(getApplicationContext(), R.string.deniedRequestForPardonsText, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onAddPardonsRequest(Pardons pardons) {
+        sendUpdate(PendingOutboundRequestsPardonsFragment.class);
     }
 
     public void requestPardons(String recipient, String recipientDisplayName, int quantity,
@@ -135,24 +155,46 @@ public class MainActivity extends FragmentActivity {
         Pardons pardons = new Pardons(recipient, recipientDisplayName, getAuthenticatedUsername(),
                 getAuthenticatedDisplayName(), new Date(), quantity, reason);
         // If approved, these pardons will come from your friend.
-        storage.addPardonsRequest(pardons);
-        updateViews(pardons.getQuantity(), /* stat not displayed */ null,
-                PendingOutboundRequestsPardonsFragment.class.getName());
+        storage.addPardonsRequest(pardons, this);
         Toast.makeText(getApplicationContext(), R.string.pardonsRequestedText, Toast.LENGTH_SHORT).show();
     }
 
-    public void retractRequestForPardons(Pardons pardons) {
-        storage.removePardonsRequest(pardons);
+    @Override
+    public void onRemovePardonsRequest(Pardons pardons) {
         updateViews(-pardons.getQuantity(), /* stat not displayed */ null,
-                PendingOutboundRequestsPardonsFragment.class.getName());
+                PendingOutboundRequestsPardonsFragment.class);
+    }
+
+    public void retractRequestForPardons(Pardons pardons) {
+        storage.removePardonsRequest(pardons, this);
         Toast.makeText(getApplicationContext(), R.string.pardonsRetractedText, Toast.LENGTH_SHORT).show();
     }
 
-    public void receivePardonsFromFriend(Pardons pardons) {
-        // not updating storage because this event is triggered by the sender of the pardon
-        // making the storage change herself
+    @Override
+    public void onAddReceivedPardons(Pardons pardons) {
+        // not exposed in the user's own UI - only triggered via storage
         updateViews(pardons.getQuantity(), receivedPardonsText,
-                ReceivedPardonsFragment.class.getName());
+                ReceivedPardonsFragment.class);
+    }
+
+    @Override
+    public void onChangePendingOutboundPardonsRequests() {
+        sendUpdate(PendingOutboundRequestsPardonsFragment.class);
+    }
+
+    @Override
+    public void onChangePendingInboundPardonsRequests() {
+        sendUpdate(PendingInboundRequestsPardonsFragment.class);
+    }
+
+    @Override
+    public void onChangeDeniedOutboundPardonsRequests() {
+        sendUpdate(DeniedOutboundRequestsPardonsFragment.class);
+    }
+
+    @Override
+    public void onChangeDeniedInboundPardonsRequests() {
+        sendUpdate(DeniedInboundRequestsPardonsFragment.class);
     }
 
     private int textToInt(TextView textView) {
@@ -163,13 +205,15 @@ public class MainActivity extends FragmentActivity {
         return storage;
     }
 
-    private void updateViews(int pardonsDelta, @Nullable TextView textView, String intentAction) {
-        if (textView != null) {
-            int newPardonsTotal = textToInt(textView) + pardonsDelta;
-            textView.setText(Integer.valueOf(newPardonsTotal).toString());
-        }
+    private void updateViews(int pardonsDelta, TextView textView, Class<?> intentActionClass) {
+        int newPardonsTotal = textToInt(textView) + pardonsDelta;
+        textView.setText(Integer.valueOf(newPardonsTotal).toString());
+        sendUpdate(intentActionClass);
+    }
+
+    private void sendUpdate(Class<?> intentActionClass) {
         LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
-        lbm.sendBroadcast(new Intent(intentAction));
+        lbm.sendBroadcast(new Intent(intentActionClass.getName()));
         lbm.sendBroadcast(new Intent(SlidingTabLayout.UPDATE_TAB_TITLES_INTENT_ACTION));
     }
 

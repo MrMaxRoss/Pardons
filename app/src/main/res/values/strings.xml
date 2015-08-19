@@ -24,7 +24,7 @@
     <string name="denied_outbound_requests_tab_title">Denied Requests Out</string>
     <string name="pick_target_label">Browse</string>
     <string name="select_recipient_hint">Send Pardons to&#8230;</string>
-    <string name="firebase_url">pardons.firebaseio.com</string>
+    <string name="firebase_url">https://pardons.firebaseio.com</string>
     <string name="pardons_requested_from_friends_text">Requested By You:</string>
     <string name="pardons_requested_from_friends_default_val_text">0</string>
     <string name="requestPardonButtonText">Request Pardons</string>

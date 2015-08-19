@@ -93,4 +93,8 @@ public class Pardons {
                 ", reason='" + reason + '\'' +
                 '}';
     }
+
+    public boolean hasId() {
+        return id != null;
+    }
 }

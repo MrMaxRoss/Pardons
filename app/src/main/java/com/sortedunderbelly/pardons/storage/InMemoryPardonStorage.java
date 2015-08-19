@@ -26,7 +26,7 @@ public class InMemoryPardonStorage implements PardonStorage {
     private final LinkedList<Pardons> pendingInboundPardonsRequests = Lists.newLinkedList();
     private final LinkedList<Pardons> deniedInboundPardonsRequests = Lists.newLinkedList();
 
-    public static PardonStorage getInstance() {
+    public static PardonStorage get() {
         return INSTANCE;
     }
 
@@ -83,8 +83,9 @@ public class InMemoryPardonStorage implements PardonStorage {
     }
 
     @Override
-    public void addSentPardons(Pardons pardons) {
+    public void addSentPardons(Pardons pardons, PardonsUIListener listener) {
         addToList(pardonsWithId(pardons), sentPardons);
+        listener.onAddSentPardons(pardons);
     }
 
     @Override
@@ -98,13 +99,15 @@ public class InMemoryPardonStorage implements PardonStorage {
     }
 
     @Override
-    public void addPardonsRequest(Pardons pardons) {
+    public void addPardonsRequest(Pardons pardons, PardonsUIListener listener) {
         addToList(pardonsWithId(pardons), pendingOutboundPardonsRequests);
+        listener.onAddPardonsRequest(pardons);
     }
 
     @Override
-    public void removePardonsRequest(Pardons pardons) {
+    public void removePardonsRequest(Pardons pardons, PardonsUIListener listener) {
         pendingOutboundPardonsRequests.remove(pardons);
+        listener.onRemovePardonsRequest(pardons);
     }
 
     @Override
@@ -118,15 +121,17 @@ public class InMemoryPardonStorage implements PardonStorage {
     }
 
     @Override
-    public void approvePardonsRequest(Pardons pardonsRequest) {
+    public void approvePardonsRequest(Pardons pardonsRequest, PardonsUIListener listener) {
         pendingInboundPardonsRequests.remove(pardonsRequest);
         sentPardons.add(pardonsRequest);
+        listener.onApprovePardonsRequest(pardonsRequest);
     }
 
     @Override
-    public void denyPardonsRequest(Pardons pardonsRequest) {
+    public void denyPardonsRequest(Pardons pardonsRequest, PardonsUIListener listener) {
         pendingInboundPardonsRequests.remove(pardonsRequest);
         deniedInboundPardonsRequests.add(pardonsRequest);
+        listener.onDenyPardonsRequest(pardonsRequest);
     }
 
     private static void addToList(Pardons pardons, LinkedList<Pardons> list) {
@@ -135,7 +140,7 @@ public class InMemoryPardonStorage implements PardonStorage {
     }
 
     private static Pardons pardonsWithId(Pardons pardons) {
-        if (pardons.getId() == null) {
+        if (!pardons.hasId()) {
             return new Pardons(
                     getNextId(),
                     pardons.getFrom(),
@@ -148,6 +153,7 @@ public class InMemoryPardonStorage implements PardonStorage {
         }
         return pardons;
     }
+
     private static String getNextId() {
         return Integer.valueOf(nextId.getAndIncrement()).toString();
     }

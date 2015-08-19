@@ -8,11 +8,29 @@ import java.util.List;
  * Created by max.ross on 3/7/15.
  */
 public interface PardonStorage {
+
+    interface PardonsUIListener {
+        void onApprovePardonsRequest(Pardons pardonsRequest);
+
+        void onDenyPardonsRequest(Pardons pardonsRequest);
+
+        void onRemovePardonsRequest(Pardons pardons);
+
+        void onAddPardonsRequest(Pardons pardons);
+
+        void onAddSentPardons(Pardons pardons);
+        void onAddReceivedPardons(Pardons pardons);
+        void onChangePendingOutboundPardonsRequests();
+        void onChangePendingInboundPardonsRequests();
+        void onChangeDeniedOutboundPardonsRequests();
+        void onChangeDeniedInboundPardonsRequests();
+    }
+
     List<Pardons> getReceivedPardons();
     void addReceivedPardons(Pardons pardons);
 
     List<Pardons> getSentPardons();
-    void addSentPardons(Pardons pardons);
+    void addSentPardons(Pardons pardons, PardonsUIListener listener);
     
     // Request Management
 
@@ -20,14 +38,14 @@ public interface PardonStorage {
     List<Pardons> getPendingOutboundPardonsRequests();
     List<Pardons> getDeniedOutboundPardonsRequests();
     
-    void addPardonsRequest(Pardons pardons);
+    void addPardonsRequest(Pardons pardons, PardonsUIListener listener);
     // You retracted your request for pardons
-    void removePardonsRequest(Pardons pardons);
+    void removePardonsRequest(Pardons pardons, PardonsUIListener listener);
     
     // Managing requests your friends made to you
     List<Pardons> getPendingInboundPardonsRequests();
     List<Pardons> getDeniedInboundPardonsRequests();
 
-    void approvePardonsRequest(Pardons pardonsRequest);
-    void denyPardonsRequest(Pardons pardonsRequest);
+    void approvePardonsRequest(Pardons pardonsRequest, PardonsUIListener listener);
+    void denyPardonsRequest(Pardons pardonsRequest, PardonsUIListener listener);
 }
