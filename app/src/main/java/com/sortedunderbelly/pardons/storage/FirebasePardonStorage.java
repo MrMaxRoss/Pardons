@@ -63,7 +63,7 @@ public class FirebasePardonStorage implements PardonStorage {
         });
 
         // fake login
-        onAuthStateChanged(new AuthData("dummy token", -1, "dummy uid", "dummy", null, null));
+        onAuthStateChanged(new AuthData("dummytoken", -1, "dummyuid", "dummy", null, null));
     }
 
     private void onAuthStateChanged(AuthData authData) {

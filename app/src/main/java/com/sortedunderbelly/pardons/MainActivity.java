@@ -72,7 +72,7 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
             transaction.replace(R.id.tabbed_fragment, tabsFragment);
             transaction.commit();
         }
-        refresh();
+        fullRefresh();
     }
 
     @Override
@@ -87,7 +87,7 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
         super.onStop();
     }
 
-    private void refresh() {
+    private void fullRefresh() {
         int totalReceivedPardons = calcPardonSum(storage.getReceivedPardons());
         receivedPardonsText.setText(Integer.valueOf(totalReceivedPardons).toString());
 
@@ -112,14 +112,13 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
 
     @Override
     public void onAddSentPardons(Pardons pardons) {
-        updateViews(pardons.getQuantity(), sentPardonsText,
-                SentPardonsFragment.class);
+        updateStats(pardons.getQuantity(), sentPardonsText, SentPardonsFragment.class);
     }
 
     @Override
     public void onApprovePardonsRequest(Pardons pardonsRequest) {
-        sendUpdate(PendingInboundRequestsPardonsFragment.class);
-        updateViews(pardonsRequest.getQuantity(), sentPardonsText,
+        sendFragmentUpdate(PendingInboundRequestsPardonsFragment.class);
+        updateStats(pardonsRequest.getQuantity(), sentPardonsText,
                 SentPardonsFragment.class);
     }
 
@@ -137,7 +136,7 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
 
     @Override
     public void onDenyPardonsRequest(Pardons pardonsRequest) {
-        sendUpdate(DeniedInboundRequestsPardonsFragment.class);
+        sendFragmentUpdate(DeniedInboundRequestsPardonsFragment.class);
     }
 
     public void denyPardons(Pardons pardons) {
@@ -147,7 +146,7 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
 
     @Override
     public void onAddPardonsRequest(Pardons pardons) {
-        sendUpdate(PendingOutboundRequestsPardonsFragment.class);
+        sendFragmentUpdate(PendingOutboundRequestsPardonsFragment.class);
     }
 
     public void requestPardons(String recipient, String recipientDisplayName, int quantity,
@@ -161,7 +160,7 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
 
     @Override
     public void onRemovePardonsRequest(Pardons pardons) {
-        updateViews(-pardons.getQuantity(), /* stat not displayed */ null,
+        updateStats(-pardons.getQuantity(), /* stat not displayed */ null,
                 PendingOutboundRequestsPardonsFragment.class);
     }
 
@@ -173,28 +172,28 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
     @Override
     public void onAddReceivedPardons(Pardons pardons) {
         // not exposed in the user's own UI - only triggered via storage
-        updateViews(pardons.getQuantity(), receivedPardonsText,
+        updateStats(pardons.getQuantity(), receivedPardonsText,
                 ReceivedPardonsFragment.class);
     }
 
     @Override
     public void onChangePendingOutboundPardonsRequests() {
-        sendUpdate(PendingOutboundRequestsPardonsFragment.class);
+        sendFragmentUpdate(PendingOutboundRequestsPardonsFragment.class);
     }
 
     @Override
     public void onChangePendingInboundPardonsRequests() {
-        sendUpdate(PendingInboundRequestsPardonsFragment.class);
+        sendFragmentUpdate(PendingInboundRequestsPardonsFragment.class);
     }
 
     @Override
     public void onChangeDeniedOutboundPardonsRequests() {
-        sendUpdate(DeniedOutboundRequestsPardonsFragment.class);
+        sendFragmentUpdate(DeniedOutboundRequestsPardonsFragment.class);
     }
 
     @Override
     public void onChangeDeniedInboundPardonsRequests() {
-        sendUpdate(DeniedInboundRequestsPardonsFragment.class);
+        sendFragmentUpdate(DeniedInboundRequestsPardonsFragment.class);
     }
 
     private int textToInt(TextView textView) {
@@ -205,13 +204,13 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
         return storage;
     }
 
-    private void updateViews(int pardonsDelta, TextView textView, Class<?> intentActionClass) {
+    private void updateStats(int pardonsDelta, TextView textView, Class<?> intentActionClass) {
         int newPardonsTotal = textToInt(textView) + pardonsDelta;
         textView.setText(Integer.valueOf(newPardonsTotal).toString());
-        sendUpdate(intentActionClass);
+        sendFragmentUpdate(intentActionClass);
     }
 
-    private void sendUpdate(Class<?> intentActionClass) {
+    private void sendFragmentUpdate(Class<?> intentActionClass) {
         LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
         lbm.sendBroadcast(new Intent(intentActionClass.getName()));
         lbm.sendBroadcast(new Intent(SlidingTabLayout.UPDATE_TAB_TITLES_INTENT_ACTION));
