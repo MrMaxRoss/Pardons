@@ -217,6 +217,9 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
         /* If a user is currently authenticated, display a signOut menu */
         if (this.mGoogleSignInAccount != null) {
             getMenuInflater().inflate(R.menu.menu_main, menu);
+            MenuItem item = menu.findItem(R.id.sign_out);
+            item.setTitle(String.format("%s (%s)", getString(R.string.action_logout),
+                    mGoogleSignInAccount.getEmail()));
             return true;
         } else {
             return false;
