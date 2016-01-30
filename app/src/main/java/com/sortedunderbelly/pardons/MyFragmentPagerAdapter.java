@@ -16,8 +16,6 @@ import java.util.concurrent.Callable;
  */
 public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
 
-    static final String LOG_TAG = "MyFragmentPagerAdapter";
-
     private final class FragmentData {
         final String tabTitle;
         final Callable<Integer> tabTitleQuantityCallable;

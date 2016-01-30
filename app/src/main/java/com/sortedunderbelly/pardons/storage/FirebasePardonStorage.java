@@ -8,8 +8,10 @@ import com.firebase.client.ChildEventListener;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.sortedunderbelly.pardons.Pardons;
 import com.sortedunderbelly.pardons.R;
 
@@ -18,6 +20,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by max.ross on 8/13/15.
@@ -25,12 +28,11 @@ import java.util.Map;
 public class FirebasePardonStorage implements PardonStorage {
     private static final String TAG = "FirebasePardonStorage";
 
-    private static PardonStorage INSTANCE;
-
     private static final String USER_DATA_PATH = "users";
 
     private String userId;
     private final Firebase firebaseRef;
+    private final Set<String> userIdsWithListeners = Sets.newHashSet();
 
     private final LinkedList<Pardons> receivedPardons = Lists.newLinkedList();
     private final LinkedList<Pardons> sentPardons = Lists.newLinkedList();
@@ -40,11 +42,8 @@ public class FirebasePardonStorage implements PardonStorage {
     private final LinkedList<Pardons> deniedInboundPardonsRequests = Lists.newLinkedList();
 
     private final PardonsUIListener listener;
-
-    private final Firebase.AuthResultHandler authResultHandler = new AuthResultHandler();
-    private ChildEventListener pardonListener;
-    boolean isInitialized = false; // true after we've received our callback with all the user data
-
+    /* Listener for Firebase session changes */
+    private Firebase.AuthStateListener mAuthStateListener;
 
     public FirebasePardonStorage(Context context, PardonsUIListener listener) {
         this.listener = listener;
@@ -52,26 +51,88 @@ public class FirebasePardonStorage implements PardonStorage {
         Firebase.getDefaultConfig().setPersistenceEnabled(true);
 
         firebaseRef = new Firebase(context.getResources().getString(R.string.firebase_url));
+        clear();
+    }
 
-        // Check if the user is authenticated with Firebase already. If this is the case we can set
-        // the authenticated user and hide any login buttons
-        firebaseRef.addAuthStateListener(new Firebase.AuthStateListener() {
+    private void clear() {
+        receivedPardons.clear();
+        sentPardons.clear();
+        pendingOutboundPardonsRequests.clear();
+        deniedOutboundPardonsRequests.clear();
+        pendingInboundPardonsRequests.clear();
+        deniedInboundPardonsRequests.clear();
+    }
+
+    @Override
+    public void start(final GoogleSignInAccount account) {
+        mAuthStateListener = new Firebase.AuthStateListener() {
             @Override
             public void onAuthStateChanged(AuthData authData) {
                 FirebasePardonStorage.this.onAuthStateChanged(authData);
+                if (authData != null) {
+                    listener.onStorageAuthStateChanged(account);
+                } else {
+                    listener.onStorageAuthStateChanged(null);
+                }
             }
-        });
+        };
+        /* Check if the user is authenticated with Firebase already. If this is the case we can set
+         * the authenticated user and hide any login buttons
+         */
+        firebaseRef.addAuthStateListener(mAuthStateListener);
+    }
 
-        // fake login
-        onAuthStateChanged(new AuthData("dummytoken", -1, "dummyuid", "dummy", null, null));
+    @Override
+    public void signOut() {
+        clear();
+        firebaseRef.unauth();
+    }
+
+    @Override
+    public void onDestroy() {
+        // if changing configurations, stop tracking firebase session.
+        firebaseRef.removeAuthStateListener(mAuthStateListener);
+    }
+
+    @Override
+    public void authWithOAuthToken(String provider, StorageSignInResult result) {
+        firebaseRef.authWithOAuthToken(provider, result.getToken(), new AuthResultHandler(result));
+    }
+
+    /**
+     * Utility class for authentication results
+     */
+    private class AuthResultHandler implements Firebase.AuthResultHandler {
+
+        private final StorageSignInResult result;
+
+        public AuthResultHandler(StorageSignInResult result) {
+            this.result = result;
+        }
+
+        @Override
+        public void onAuthenticated(AuthData authData) {
+            listener.onStorageAuthStateChanged(result.getAccount());
+        }
+
+        @Override
+        public void onAuthenticationError(FirebaseError firebaseError) {
+            listener.onStorageAuthenticationError(firebaseError.toString(), result.getToken());
+        }
     }
 
     private void onAuthStateChanged(AuthData authData) {
         if (authData != null) {
             userId = authData.getUid();
-            attachPardonListeners();
+            if (!userIdsWithListeners.contains(userId)) {
+                userIdsWithListeners.add(userId);
+                attachPardonListeners();
+            }
+        } else {
+            userId = null;
+            // don't remove from the set, the listeners will still be valid if the same
+            // user logs back in
         }
-//        authHelper.onAuthStateChanged(authDataToAuthStruct(authData), null);
     }
 
     private Firebase getUserRef() {
@@ -88,35 +149,6 @@ public class FirebasePardonStorage implements PardonStorage {
                 new Date((Long) pardonData.get("date")),
                 ((Long) pardonData.get("quantity")).intValue(),
                 (String) pardonData.get("reason"));
-    }
-
-    /**
-     * Utility class for authentication results
-     */
-    private class AuthResultHandler implements Firebase.AuthResultHandler {
-
-        @Override
-        public void onAuthenticated(AuthData authData) {
-            FirebasePardonStorage.this.onAuthStateChanged(authData);
-        }
-
-        @Override
-        public void onAuthenticationError(FirebaseError firebaseError) {
-//            authHelper.onAuthStateChanged(null, firebaseError.toString());
-        }
-    }
-
-
-    private static Pardons pardonsWithId(String id, Pardons pardons) {
-        return new Pardons(
-                id,
-                pardons.getFrom(),
-                pardons.getFromDisplay(),
-                pardons.getTo(),
-                pardons.getToDisplay(),
-                pardons.getDate(),
-                pardons.getQuantity(),
-                pardons.getReason());
     }
 
     private void addPardons(Firebase ref, Pardons pardons) {
@@ -355,7 +387,6 @@ public class FirebasePardonStorage implements PardonStorage {
     }
 
     @SuppressWarnings("unchecked")
-
     private static Map<String, Object> mapFromSnapshot(DataSnapshot snapshot) {
         return (Map<String, Object>) snapshot.getValue();
     }

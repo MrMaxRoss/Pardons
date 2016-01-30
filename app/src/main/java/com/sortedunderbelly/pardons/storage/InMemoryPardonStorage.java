@@ -1,5 +1,6 @@
 package com.sortedunderbelly.pardons.storage;
 
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.common.collect.Lists;
 import com.sortedunderbelly.pardons.Pardons;
 
@@ -17,8 +18,7 @@ public class InMemoryPardonStorage implements PardonStorage {
 
     private static final AtomicInteger nextId = new AtomicInteger(1);
 
-    private static final PardonStorage INSTANCE = new InMemoryPardonStorage();
-
+    private final PardonsUIListener listener;
     private final LinkedList<Pardons> receivedPardons = Lists.newLinkedList();
     private final LinkedList<Pardons> sentPardons = Lists.newLinkedList();
     private final LinkedList<Pardons> pendingOutboundPardonsRequests = Lists.newLinkedList();
@@ -26,11 +26,8 @@ public class InMemoryPardonStorage implements PardonStorage {
     private final LinkedList<Pardons> pendingInboundPardonsRequests = Lists.newLinkedList();
     private final LinkedList<Pardons> deniedInboundPardonsRequests = Lists.newLinkedList();
 
-    public static PardonStorage get() {
-        return INSTANCE;
-    }
-
-    private InMemoryPardonStorage() {
+    public InMemoryPardonStorage(PardonsUIListener listener) {
+        this.listener = listener;
         // Seed the database.
         // Most recent comes first.
         sentPardons.add(newPardon(2015, Calendar.JUNE, 19,
@@ -56,6 +53,8 @@ public class InMemoryPardonStorage implements PardonStorage {
         pendingOutboundPardonsRequests.add(newPardon(2014, Calendar.OCTOBER, 10,
                 "daphne@example.com", "Daphne Ross", "max@example.com", "Max Ross",
                 4, "ate last cookie"));
+
+        authWithOAuthToken("dummy", new StorageSignInResult(null, "dummy token"));
     }
 
     private Pardons newPardon(int year, int month, int dayOfMonth, String from,
@@ -156,5 +155,25 @@ public class InMemoryPardonStorage implements PardonStorage {
 
     private static String getNextId() {
         return Integer.valueOf(nextId.getAndIncrement()).toString();
+    }
+
+    @Override
+    public void authWithOAuthToken(String provider, StorageSignInResult signInResult) {
+        listener.onStorageAuthStateChanged(signInResult.getAccount());
+    }
+
+    @Override
+    public void start(GoogleSignInAccount account) {
+
+    }
+
+    @Override
+    public void signOut() {
+        listener.onStorageAuthStateChanged(null);
+    }
+
+    @Override
+    public void onDestroy() {
+
     }
 }

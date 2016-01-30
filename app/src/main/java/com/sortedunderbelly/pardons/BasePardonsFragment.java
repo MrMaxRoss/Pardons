@@ -22,8 +22,6 @@ import java.util.List;
  */
 public abstract class BasePardonsFragment extends Fragment {
 
-    static final String LOG_TAG = "BasePardonsFragment";
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

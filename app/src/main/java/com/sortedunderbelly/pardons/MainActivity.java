@@ -1,6 +1,9 @@
 package com.sortedunderbelly.pardons;
 
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
@@ -8,44 +11,94 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.auth.GoogleAuthException;
+import com.google.android.gms.auth.GoogleAuthUtil;
+import com.google.android.gms.auth.UserRecoverableAuthException;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.Scopes;
+import com.google.android.gms.common.SignInButton;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.OptionalPendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.sortedunderbelly.pardons.storage.FirebasePardonStorage;
 import com.sortedunderbelly.pardons.storage.PardonStorage;
+import com.sortedunderbelly.pardons.storage.PardonStorage.StorageSignInResult;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
 
-public class MainActivity extends FragmentActivity implements PardonStorage.PardonsUIListener {
+public class MainActivity extends FragmentActivity implements PardonStorage.PardonsUIListener,
+        GoogleApiClient.OnConnectionFailedListener {
+
+    private static final String TAG = MainActivity.class.getSimpleName();
+    private static final String GOOGLE_PROVIDER = "google";
+    private static final int RC_SIGN_IN = 9001;
+    private static final int AUTH_REQUEST_CODE = 9002;
+
 
     private static PardonStorage storage;
-
-    private GoogleApiClientHelper apiClientHelper;
 
     private TextView receivedPardonsText;
     private TextView sentPardonsText;
     SlidingTabsBasicFragment tabsFragment;
 
+    /* A dialog that is presented until storage authentication is finished. */
+    private ProgressDialog mAuthProgressDialog;
+
+    /* Data from the authenticated user */
+    private GoogleSignInAccount mGoogleSignInAccount;
+
+    /* Client used to interact with Google APIs. */
+    private GoogleApiClient mGoogleApiClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        apiClientHelper = new GoogleApiClientHelper(this);
-        apiClientHelper.onCreate(savedInstanceState);
 
         setContentView(R.layout.pardons_home);
+
+        /* Load the Google login button */
+        SignInButton mGoogleLoginButton = (SignInButton) findViewById(R.id.login_with_google);
+        mGoogleLoginButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startSignInIntent();
+            }
+        });
+
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .build();
+
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this, this)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .build();
+
         if (storage == null) {
             // this seems like a bad idea, but how do I keep from reiniitializing Firebase
             // every time a new activity is created?
             storage = new FirebasePardonStorage(this, this);
         }
-//        storage = InMemoryPardonStorage.get();
+//        storage = new InMemoryPardonStorage(this);
+
         receivedPardonsText = (TextView) findViewById(R.id.receivedPardonsValTextView);
         sentPardonsText = (TextView) findViewById(R.id.sentPardonsValTextView);
         Button sendPardonsButton = (Button) findViewById(R.id.sendPardonButton);
@@ -75,24 +128,206 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
         fullRefresh();
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        apiClientHelper.onStart();
+    private void startSignInIntent() {
+        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
+        startActivityForResult(signInIntent, RC_SIGN_IN);
     }
 
     @Override
-    protected void onStop() {
-        apiClientHelper.onStop();
-        super.onStop();
+    public void onStart() {
+        super.onStart();
+
+        OptionalPendingResult<GoogleSignInResult> opr = Auth.GoogleSignInApi.silentSignIn(mGoogleApiClient);
+        if (opr.isDone()) {
+            // If the user's cached credentials are valid, the OptionalPendingResult will be "done"
+            // and the GoogleSignInResult will be available instantly.
+            Log.d(TAG, "Got cached sign-in");
+            handleSignInResult(opr.get());
+        } else {
+            // If the user has not previously signed in on this device or the sign-in has expired,
+            // this asynchronous branch will attempt to sign in the user silently.  Cross-device
+            // single sign-on will occur in this branch.
+            showProgressDialog();
+            opr.setResultCallback(new ResultCallback<GoogleSignInResult>() {
+                @Override
+                public void onResult(@NonNull GoogleSignInResult googleSignInResult) {
+                    hideProgressDialog();
+                    handleSignInResult(googleSignInResult);
+                }
+            });
+        }
+    }
+
+    private void showProgressDialog() {
+        /* Setup the progress dialog that is displayed later when authenticating with storage */
+        if (mAuthProgressDialog == null) {
+            mAuthProgressDialog = new ProgressDialog(this);
+            mAuthProgressDialog.setTitle("Loading");
+            mAuthProgressDialog.setMessage("Authenticating ...");
+            mAuthProgressDialog.setCancelable(false);
+        }
+        mAuthProgressDialog.show();
+    }
+
+    private void hideProgressDialog() {
+        if (mAuthProgressDialog != null && mAuthProgressDialog.isShowing()) {
+            mAuthProgressDialog.hide();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        storage.onDestroy();
+    }
+
+    /**
+     * This method fires when any startActivityForResult finishes. The requestCode maps to
+     * the value passed into startActivityForResult.
+     */
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RC_SIGN_IN) {
+            if (resultCode == RESULT_OK) {
+                GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+                handleSignInResult(result);
+            }
+        } else if (requestCode == AUTH_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                startSignInIntent();
+            }
+        }
+    }
+
+    private void handleSignInResult(GoogleSignInResult result) {
+        Log.d(TAG, "handleSignInResult: " + result.isSuccess());
+        if (result.isSuccess() && result.getSignInAccount() != null) {
+            // Signed into Google, now sign into the storage service
+            doStorageSignIn(result.getSignInAccount());
+        } else {
+            // Signed out, show unauthenticated UI.
+            signOut();
+            updateUI(mGoogleSignInAccount);
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        /* If a user is currently authenticated, display a signOut menu */
+        if (this.mGoogleSignInAccount != null) {
+            getMenuInflater().inflate(R.menu.menu_main, menu);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.sign_out) {
+            signOut();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Unauthenticate from the storage system and from providers where necessary.
+     */
+    private void signOut() {
+        if (mGoogleSignInAccount != null) {
+            // Grab this now because when we signOut, mAuthData will become null
+            storage.signOut();
+            Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
+                    new ResultCallback<Status>() {
+                        @Override
+                        public void onResult(@NonNull Status status) {
+                            updateUI(null);
+                        }
+                    });
+        }
+    }
+
+    /**
+     * Show errors to users
+     */
+    private void showErrorDialog(String message) {
+        new AlertDialog.Builder(this)
+                .setTitle("Error")
+                .setMessage(message)
+                .setPositiveButton(android.R.string.ok, null)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
+    }
+
+    private void updateUI(GoogleSignInAccount acct) {
+        if (acct != null) {
+            findViewById(R.id.login_with_google).setVisibility(View.GONE);
+            findViewById(R.id.gridLayout).setVisibility(View.VISIBLE);
+            findViewById(R.id.horz_line).setVisibility(View.VISIBLE);
+            findViewById(R.id.tabbed_fragment).setVisibility(View.VISIBLE);
+        } else {
+            findViewById(R.id.login_with_google).setVisibility(View.VISIBLE);
+            findViewById(R.id.gridLayout).setVisibility(View.GONE);
+            findViewById(R.id.horz_line).setVisibility(View.GONE);
+            findViewById(R.id.tabbed_fragment).setVisibility(View.GONE);
+        }
+    }
+
+    private void doStorageSignIn(final GoogleSignInAccount account) {
+        storage.start(account);
+
+        /* Get OAuth token in Background */
+        AsyncTask<Void, Void, StorageSignInResult> task = new AsyncTask<Void, Void, StorageSignInResult>() {
+            String errorMessage = null;
+
+            @Override
+            protected StorageSignInResult doInBackground(Void... params) {
+                String token = null;
+
+                try {
+                    String scope = String.format("oauth2:%s", Scopes.PLUS_LOGIN);
+                    token = GoogleAuthUtil.getToken(MainActivity.this, account.getEmail(), scope);
+                } catch (IOException transientEx) {
+                    /* Network or server error */
+                    Log.e(TAG, "Error authenticating with Google: " + transientEx);
+                    errorMessage = "Network error: " + transientEx.getMessage();
+                } catch (UserRecoverableAuthException e) {
+                    Log.w(TAG, "Recoverable Google OAuth error: " + e.toString());
+                    /* We probably need to ask for permissions, so start the intent if there is none pending */
+                    startActivityForResult(e.getIntent(), AUTH_REQUEST_CODE);
+                } catch (GoogleAuthException authEx) {
+                    /* The call is not ever expected to succeed assuming you have already verified that
+                     * Google Play services is installed. */
+                    Log.e(TAG, "Error authenticating with Google: " + authEx.getMessage(), authEx);
+                    errorMessage = "Error authenticating with Google: " + authEx.getMessage();
+                }
+                return new StorageSignInResult(account, token);
+            }
+
+            @Override
+            protected void onPostExecute(StorageSignInResult result) {
+                if (result != null && result.getToken() != null) {
+                    storage.authWithOAuthToken(GOOGLE_PROVIDER, result);
+                }
+            }
+        };
+        task.execute();
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult result) {
+        Log.e(TAG, result.toString());
     }
 
     private void fullRefresh() {
         int totalReceivedPardons = calcPardonSum(storage.getReceivedPardons());
-        receivedPardonsText.setText(Integer.valueOf(totalReceivedPardons).toString());
+        receivedPardonsText.setText(String.format("%d", totalReceivedPardons));
 
         int totalSentPardons = calcPardonSum(storage.getSentPardons());
-        sentPardonsText.setText(Integer.valueOf(totalSentPardons).toString());
+        sentPardonsText.setText(String.format("%d", totalSentPardons));
     }
 
     private int calcPardonSum(List<Pardons> pardons) {
@@ -102,13 +337,6 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
         }
         return total;
     }
-
-
-    private String getAuthenticatedUsername() {
-        return "me@sortedunderbelly.com";
-    }
-
-    private String getAuthenticatedDisplayName() { return "Me"; }
 
     @Override
     public void onAddSentPardons(Pardons pardons) {
@@ -128,7 +356,7 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
     }
 
     public void sendPardonsToFriend(String recipient, String recipientDisplayName, int quantity, String reason) {
-        Pardons pardons = new Pardons(getAuthenticatedUsername(), getAuthenticatedDisplayName(),
+        Pardons pardons = new Pardons(mGoogleSignInAccount.getEmail(), mGoogleSignInAccount.getDisplayName(),
                 recipient, recipientDisplayName, new Date(), quantity, reason);
         storage.addSentPardons(pardons, this);
         Toast.makeText(getApplicationContext(), R.string.pardonsSentText, Toast.LENGTH_SHORT).show();
@@ -151,8 +379,8 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
 
     public void requestPardons(String recipient, String recipientDisplayName, int quantity,
                                String reason) {
-        Pardons pardons = new Pardons(recipient, recipientDisplayName, getAuthenticatedUsername(),
-                getAuthenticatedDisplayName(), new Date(), quantity, reason);
+        Pardons pardons = new Pardons(recipient, recipientDisplayName, mGoogleSignInAccount.getEmail(),
+                mGoogleSignInAccount.getDisplayName(), new Date(), quantity, reason);
         // If approved, these pardons will come from your friend.
         storage.addPardonsRequest(pardons, this);
         Toast.makeText(getApplicationContext(), R.string.pardonsRequestedText, Toast.LENGTH_SHORT).show();
@@ -204,9 +432,10 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
         return storage;
     }
 
+
     private void updateStats(int pardonsDelta, TextView textView, Class<?> intentActionClass) {
         int newPardonsTotal = textToInt(textView) + pardonsDelta;
-        textView.setText(Integer.valueOf(newPardonsTotal).toString());
+        textView.setText(String.format("%d", newPardonsTotal));
         sendFragmentUpdate(intentActionClass);
     }
 
@@ -231,21 +460,27 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
         }
     }
 
-    /**
-     * Saves the resolution state.
-     */
     @Override
-    protected void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-        apiClientHelper.onSaveInstanceState(outState);
+    public void onStorageAuthStateChanged(GoogleSignInAccount account) {
+        if (account != null && !account.equals(mGoogleSignInAccount)) {
+            supportInvalidateOptionsMenu();
+            fullRefresh();
+        } else if (mGoogleSignInAccount != null && !mGoogleSignInAccount.equals(account)) {
+            supportInvalidateOptionsMenu();
+            fullRefresh();
+        }
+
+        mGoogleSignInAccount = account;
+        updateUI(mGoogleSignInAccount);
     }
 
-    /**
-     * Handles Google Play Services resolution callbacks.
-     */
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        apiClientHelper.onActivityResult(requestCode, resultCode, data);
+    public void onStorageAuthenticationError(String errorStr, String token) {
+        hideProgressDialog();
+        showErrorDialog(errorStr);
+        // Try to invalidate the oauth token we received
+        // TODO(max.ross) Invalidate the token and try logging in again. Only show the error dialog
+        // if we fail a second time.
+        GoogleAuthUtil.invalidateToken(this, token);
     }
 }

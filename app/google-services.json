@@ -1,0 +1,51 @@
+{
+  "project_info": {
+    "project_id": "pardons-1032",
+    "project_number": "476650518726",
+    "name": "Pardons"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:476650518726:android:dcfb1ed003887b26",
+        "client_id": "android:com.sortedunderbelly.pardons",
+        "client_type": 1,
+        "android_client_info": {
+          "package_name": "com.sortedunderbelly.pardons"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "476650518726-49bf2vugta5nv1qdq5u15lhpg1omj8jh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sortedunderbelly.pardons",
+            "certificate_hash": "AB2D764D7CBDDFA56F17C0206273E3A19470DA0A"
+          }
+        }
+      ],
+      "api_key": [],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "cloud_messaging_service": {
+          "status": 1,
+          "apns_config": []
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "google_signin_service": {
+          "status": 2
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "client_info": [],
+  "ARTIFACT_VERSION": "1"
+}

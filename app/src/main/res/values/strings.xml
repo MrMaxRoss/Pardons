@@ -51,4 +51,8 @@
     <string name="pending_pardons_attribution_format">%1$s is requesting %2$d %3$s</string>
     <string name="acceptedRequestForPardonsText">Accepted Request!</string>
     <string name="pending_outbound_requests_tab_title">Requests Out</string>
+    <string name="login_with_google">Sign In With Google</string>
+    <string name="action_logout">Sign Out</string>
+    <string name="google_app_id">476650518726</string>
+    <string name="signed_out">Not Signed In</string>
 </resources>

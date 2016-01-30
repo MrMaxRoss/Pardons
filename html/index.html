@@ -16,16 +16,28 @@
     <ul id="example-messages" class="example-chat-messages">
         <li ng-repeat="pardon in pardons">
             <strong class="example-chat-username">
-                {{ pardon.from }} sent {{ pardon.quantity }} pardons to {{ pardon.to }} for {{ pardon.reason }}
+                {{ pardon.from }} sent {{ pardon.quantity }} pardons to {{ pardon.to }} for {{
+                pardon.reason }}
             </strong>
         </li>
     </ul>
 
     <footer>
-        <input ng-model="from" type="text" id="fromInput"  placeholder="From...">
-        <input ng-model="to" type="text" id="toInput"  placeholder="To...">
-        <input ng-model="quantity" type="number" id="quantityInput"  placeholder="Quantity...">
-        <input ng-model="reason" ng-keydown="addPardon($event)" type="text" id="reasonInput"  placeholder="Type a reason...">
+        <select name="singleSelect" ng-model="pardons_type">
+            <option value="sent">Sent</option>
+            <option value="received">Received</option>
+            <option value="pending_inbound">Pending Inbound</option>
+            <option value="pending_outbound">Pending Outbound</option>
+            <option value="denied_inbound">Denied Inbound</option>
+            <option value="denied_outbound">Denied Outbound</option>
+        </select>
+        <br>
+
+        <input ng-model="from" type="text" id="fromInput" placeholder="From...">
+        <input ng-model="to" type="text" id="toInput" placeholder="To...">
+        <input ng-model="quantity" type="number" id="quantityInput" placeholder="Quantity...">
+        <input ng-model="reason" ng-keydown="addPardon($event)" type="text" id="reasonInput"
+               placeholder="Type a reason...">
     </footer>
 </div>
 
@@ -34,17 +46,20 @@
 
       myApp.controller("MyController", ["$scope", "$firebaseArray",
         function($scope, $firebaseArray) {
-          //CREATE A FIREBASE REFERENCE
-          var ref = new Firebase("https://pardons.firebaseio.com/users/dummyuid/pending_inbound");
+            //CREATE A FIREBASE REFERENCE
+            var dummyuidRef = new Firebase("https://pardons.firebaseio.com/users/dummyuid");
+            $scope.pardons = [] // starts out empty
 
-          // GET MESSAGES AS AN ARRAY
-          $scope.pardons = $firebaseArray(ref);
 
-          //ADD MESSAGE METHOD
-          $scope.addPardon = function(e) {
+            //ADD MESSAGE METHOD
+            $scope.addPardon = function(e) {
 
             //LISTEN FOR RETURN KEY
             if (e.keyCode === 13 && $scope.reason) {
+
+              var pardonsRef = dummyuidRef.child($scope.pardons_type);
+              // GET MESSAGES AS AN ARRAY
+              $scope.pardons = $firebaseArray(pardonsRef);
 
               //ADD TO FIREBASE
               $scope.pardons.$add({
@@ -59,11 +74,15 @@
 
               //RESET MESSAGE
               $scope.to = "";
+              $scope.from = "";
+              $scope.quantity = "";
               $scope.reason = "";
             }
           }
         }
       ]);
-    </script>
+
+
+</script>
 </body>
 </html>
