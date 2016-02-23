@@ -12,15 +12,14 @@ public interface PardonStorage {
 
     interface PardonsUIListener {
         void onApprovePardonsRequest(Pardons pardonsRequest);
-
         void onDenyPardonsRequest(Pardons pardonsRequest);
 
-        void onRemovePardonsRequest(Pardons pardons);
-
         void onAddPardonsRequest(Pardons pardons);
+        void onRemovePardonsRequest(Pardons pardons);
 
         void onAddSentPardons(Pardons pardons);
         void onAddReceivedPardons(Pardons pardons);
+
         void onChangePendingOutboundPardonsRequests();
         void onChangePendingInboundPardonsRequests();
         void onChangeDeniedOutboundPardonsRequests();

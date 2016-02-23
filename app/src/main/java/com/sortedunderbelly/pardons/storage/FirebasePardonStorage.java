@@ -11,7 +11,6 @@ import com.firebase.client.FirebaseError;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.sortedunderbelly.pardons.Pardons;
 import com.sortedunderbelly.pardons.R;
 
@@ -20,7 +19,6 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by max.ross on 8/13/15.
@@ -31,8 +29,9 @@ public class FirebasePardonStorage implements PardonStorage {
     private static final String USER_DATA_PATH = "users";
 
     private String userId;
+    private final List<PardonChildEventListener> listeners = Lists.newArrayList();
+
     private final Firebase firebaseRef;
-    private final Set<String> userIdsWithListeners = Sets.newHashSet();
 
     private final LinkedList<Pardons> receivedPardons = Lists.newLinkedList();
     private final LinkedList<Pardons> sentPardons = Lists.newLinkedList();
@@ -41,20 +40,19 @@ public class FirebasePardonStorage implements PardonStorage {
     private final LinkedList<Pardons> pendingInboundPardonsRequests = Lists.newLinkedList();
     private final LinkedList<Pardons> deniedInboundPardonsRequests = Lists.newLinkedList();
 
-    private final PardonsUIListener listener;
+    private final PardonsUIListener uiListener;
     /* Listener for Firebase session changes */
     private Firebase.AuthStateListener mAuthStateListener;
 
-    public FirebasePardonStorage(Context context, PardonsUIListener listener) {
-        this.listener = listener;
+    public FirebasePardonStorage(Context context, PardonsUIListener uiListener) {
+        this.uiListener = uiListener;
         Firebase.setAndroidContext(context);
         Firebase.getDefaultConfig().setPersistenceEnabled(true);
 
         firebaseRef = new Firebase(context.getResources().getString(R.string.firebase_url));
-        clear();
     }
 
-    private void clear() {
+    private void clearInMemoryData() {
         receivedPardons.clear();
         sentPardons.clear();
         pendingOutboundPardonsRequests.clear();
@@ -70,9 +68,9 @@ public class FirebasePardonStorage implements PardonStorage {
             public void onAuthStateChanged(AuthData authData) {
                 FirebasePardonStorage.this.onAuthStateChanged(authData);
                 if (authData != null) {
-                    listener.onStorageAuthStateChanged(account);
+                    uiListener.onStorageAuthStateChanged(account);
                 } else {
-                    listener.onStorageAuthStateChanged(null);
+                    uiListener.onStorageAuthStateChanged(null);
                 }
             }
         };
@@ -84,7 +82,7 @@ public class FirebasePardonStorage implements PardonStorage {
 
     @Override
     public void signOut() {
-        clear();
+        clearInMemoryData();
         firebaseRef.unauth();
     }
 
@@ -112,26 +110,26 @@ public class FirebasePardonStorage implements PardonStorage {
 
         @Override
         public void onAuthenticated(AuthData authData) {
-            listener.onStorageAuthStateChanged(result.getAccount());
+            uiListener.onStorageAuthStateChanged(result.getAccount());
         }
 
         @Override
         public void onAuthenticationError(FirebaseError firebaseError) {
-            listener.onStorageAuthenticationError(firebaseError.toString(), result.getToken());
+            uiListener.onStorageAuthenticationError(firebaseError.toString(), result.getToken());
         }
     }
 
     private void onAuthStateChanged(AuthData authData) {
         if (authData != null) {
             userId = authData.getUid();
-            if (!userIdsWithListeners.contains(userId)) {
-                userIdsWithListeners.add(userId);
-                attachPardonListeners();
-            }
+            attachPardonListeners();
         } else {
             userId = null;
-            // don't remove from the set, the listeners will still be valid if the same
-            // user logs back in
+            clearInMemoryData();
+            for (PardonChildEventListener listener : listeners) {
+                listener.remove();
+            }
+            listeners.clear();
         }
     }
 
@@ -262,10 +260,13 @@ public class FirebasePardonStorage implements PardonStorage {
     }
 
     abstract class PardonChildEventListener implements ChildEventListener {
+        private final Firebase ref;
         private final LinkedList<Pardons> list;
 
-        PardonChildEventListener(LinkedList<Pardons> list) {
+        PardonChildEventListener(Firebase ref, LinkedList<Pardons> list) {
+            this.ref = ref;
             this.list = list;
+            ref.addChildEventListener(this);
         }
 
         protected abstract void doAddCompletionCallback(Pardons pardons);
@@ -299,91 +300,83 @@ public class FirebasePardonStorage implements PardonStorage {
         public void onCancelled(FirebaseError firebaseError) {
             Log.e(TAG, "onCancelled: " + firebaseError.toString());
         }
+
+        public void remove() {
+            ref.removeEventListener(this);
+        }
     }
 
     private void attachPardonListeners() {
-        Firebase sentRef = getSentRef();
-        ChildEventListener pardonListener = new PardonChildEventListener(sentPardons) {
+        listeners.add(new PardonChildEventListener(getSentRef(), sentPardons) {
             @Override
             protected void doAddCompletionCallback(Pardons pardons) {
-                listener.onAddSentPardons(pardons);
+                uiListener.onAddSentPardons(pardons);
             }
 
             @Override
             protected void doRemoveCompletionCallback(Pardons pardons) {
                 // no way to remove a pardon once sent
             }
-        };
-        sentRef.addChildEventListener(pardonListener);
-        Firebase receivedRef = getReceivedRef();
-        pardonListener = new PardonChildEventListener(receivedPardons) {
+        });
+        listeners.add(new PardonChildEventListener(getReceivedRef(), receivedPardons) {
             @Override
             protected void doAddCompletionCallback(Pardons pardons) {
-                listener.onAddReceivedPardons(pardons);
+                uiListener.onAddReceivedPardons(pardons);
             }
 
             @Override
             protected void doRemoveCompletionCallback(Pardons pardons) {
                 // no way to remove a pardon once received
             }
-        };
-        receivedRef.addChildEventListener(pardonListener);
+        });
 
-        Firebase pendingInboundRef = getPendingInboundRef();
-        pardonListener = new PardonChildEventListener(pendingInboundPardonsRequests) {
+        listeners.add(new PardonChildEventListener(getPendingInboundRef(), pendingInboundPardonsRequests) {
             @Override
             protected void doAddCompletionCallback(Pardons pardons) {
-                listener.onChangePendingInboundPardonsRequests();
+                uiListener.onChangePendingInboundPardonsRequests();
             }
 
             @Override
             protected void doRemoveCompletionCallback(Pardons pardons) {
-                listener.onChangePendingInboundPardonsRequests();
+                uiListener.onChangePendingInboundPardonsRequests();
             }
-        };
-        pendingInboundRef.addChildEventListener(pardonListener);
+        });
 
-        Firebase pendingOutboundRef = getPendingOutboundRef();
-        pardonListener = new PardonChildEventListener(pendingOutboundPardonsRequests) {
+        listeners.add(new PardonChildEventListener(getPendingOutboundRef(), pendingOutboundPardonsRequests) {
             @Override
             protected void doAddCompletionCallback(Pardons pardons) {
-                listener.onChangePendingOutboundPardonsRequests();
+                uiListener.onChangePendingOutboundPardonsRequests();
             }
 
             @Override
             protected void doRemoveCompletionCallback(Pardons pardons) {
-                listener.onChangePendingOutboundPardonsRequests();
+                uiListener.onChangePendingOutboundPardonsRequests();
             }
-        };
-        pendingOutboundRef.addChildEventListener(pardonListener);
+        });
 
-        Firebase deniedInboundRef = getDeniedInboundRef();
-        pardonListener = new PardonChildEventListener(deniedInboundPardonsRequests) {
+        listeners.add(new PardonChildEventListener(getDeniedInboundRef(), deniedInboundPardonsRequests) {
             @Override
             protected void doAddCompletionCallback(Pardons pardons) {
-                listener.onChangeDeniedInboundPardonsRequests();
+                uiListener.onChangeDeniedInboundPardonsRequests();
             }
 
             @Override
             protected void doRemoveCompletionCallback(Pardons pardons) {
-                listener.onChangeDeniedInboundPardonsRequests();
+                uiListener.onChangeDeniedInboundPardonsRequests();
             }
-        };
-        deniedInboundRef.addChildEventListener(pardonListener);
+        });
 
-        Firebase deniedOutboundRef = getDeniedOutboundRef();
-        pardonListener = new PardonChildEventListener(deniedOutboundPardonsRequests) {
+        listeners.add(new PardonChildEventListener(getDeniedOutboundRef(), deniedOutboundPardonsRequests) {
             @Override
             protected void doAddCompletionCallback(Pardons pardons) {
-                listener.onChangeDeniedOutboundPardonsRequests();
+                uiListener.onChangeDeniedOutboundPardonsRequests();
             }
 
             @Override
             protected void doRemoveCompletionCallback(Pardons pardons) {
-                listener.onChangeDeniedOutboundPardonsRequests();
+                uiListener.onChangeDeniedOutboundPardonsRequests();
             }
-        };
-        deniedOutboundRef.addChildEventListener(pardonListener);
+        });
     }
 
     @SuppressWarnings("unchecked")
