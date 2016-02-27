@@ -3,6 +3,8 @@ package com.sortedunderbelly.pardons.storage;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.common.collect.Lists;
 import com.sortedunderbelly.pardons.Pardons;
+import com.sortedunderbelly.pardons.PardonsUIListener;
+import com.sortedunderbelly.pardons.PardonsUIListenerProvider;
 
 import java.util.Calendar;
 import java.util.Collections;
@@ -18,7 +20,7 @@ public class InMemoryPardonStorage implements PardonStorage {
 
     private static final AtomicInteger nextId = new AtomicInteger(1);
 
-    private final PardonsUIListener listener;
+    private final PardonsUIListenerProvider pardonsUIListenerProvider;
     private final LinkedList<Pardons> receivedPardons = Lists.newLinkedList();
     private final LinkedList<Pardons> sentPardons = Lists.newLinkedList();
     private final LinkedList<Pardons> pendingOutboundPardonsRequests = Lists.newLinkedList();
@@ -26,8 +28,8 @@ public class InMemoryPardonStorage implements PardonStorage {
     private final LinkedList<Pardons> pendingInboundPardonsRequests = Lists.newLinkedList();
     private final LinkedList<Pardons> deniedInboundPardonsRequests = Lists.newLinkedList();
 
-    public InMemoryPardonStorage(PardonsUIListener listener) {
-        this.listener = listener;
+    public InMemoryPardonStorage(PardonsUIListenerProvider pardonsUIListenerProvider) {
+        this.pardonsUIListenerProvider = pardonsUIListenerProvider;
         // Seed the database.
         // Most recent comes first.
         sentPardons.add(newPardon(2015, Calendar.JUNE, 19,
@@ -159,17 +161,14 @@ public class InMemoryPardonStorage implements PardonStorage {
 
     @Override
     public void authWithOAuthToken(String provider, StorageSignInResult signInResult) {
-        listener.onStorageAuthStateChanged(signInResult.getAccount());
     }
 
     @Override
     public void start(GoogleSignInAccount account) {
-
     }
 
     @Override
     public void signOut() {
-        listener.onStorageAuthStateChanged(null);
     }
 
     @Override

@@ -34,7 +34,9 @@ import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.OptionalPendingResult;
 import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.common.api.Status;
+import com.google.common.collect.Sets;
 import com.sortedunderbelly.pardons.storage.FirebasePardonStorage;
 import com.sortedunderbelly.pardons.storage.PardonStorage;
 import com.sortedunderbelly.pardons.storage.PardonStorage.StorageSignInResult;
@@ -44,7 +46,7 @@ import java.util.Date;
 import java.util.List;
 
 
-public class MainActivity extends FragmentActivity implements PardonStorage.PardonsUIListener,
+public class MainActivity extends FragmentActivity implements PardonsUIListener,
         GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -52,8 +54,25 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
     private static final int RC_SIGN_IN = 9001;
     private static final int AUTH_REQUEST_CODE = 9002;
 
+    private static boolean USE_AUTH = false;
 
+    /* Begin Static State - does not change when we get a new instance of the MainActivity */
     private static PardonStorage storage;
+
+    /* Data from the authenticated user */
+    private static GoogleSignInAccount mGoogleSignInAccount;
+
+    /* Client used to interact with Google APIs. */
+    private static GoogleApiClient mGoogleApiClient;
+
+    private static final PardonsUIListenerProvider pardonsUIListenerProvider = new PardonsUIListenerProvider() {
+        @Override
+        public PardonsUIListener get() {
+            return uiListener;
+        }
+    };
+    private static PardonsUIListener uiListener;
+    /* End Static State */
 
     private TextView receivedPardonsText;
     private TextView sentPardonsText;
@@ -62,16 +81,12 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
     /* A dialog that is presented until storage authentication is finished. */
     private ProgressDialog mAuthProgressDialog;
 
-    /* Data from the authenticated user */
-    private GoogleSignInAccount mGoogleSignInAccount;
-
-    /* Client used to interact with Google APIs. */
-    private GoogleApiClient mGoogleApiClient;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Update the listener so that the new view objects receive updates
+        uiListener = this;
         setContentView(R.layout.pardons_home);
 
         /* Load the Google login button */
@@ -95,9 +110,8 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
         if (storage == null) {
             // this seems like a bad idea, but how do I keep from reiniitializing Firebase
             // every time a new activity is created?
-            storage = new FirebasePardonStorage(this, this);
+            storage = new FirebasePardonStorage(this, pardonsUIListenerProvider, USE_AUTH);
         }
-//        storage = new InMemoryPardonStorage(this);
 
         receivedPardonsText = (TextView) findViewById(R.id.receivedPardonsValTextView);
         sentPardonsText = (TextView) findViewById(R.id.sentPardonsValTextView);
@@ -125,7 +139,7 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
             transaction.replace(R.id.tabbed_fragment, tabsFragment);
             transaction.commit();
         }
-        fullRefresh();
+        updateUI(mGoogleSignInAccount);
     }
 
     private void startSignInIntent() {
@@ -137,12 +151,16 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
     public void onStart() {
         super.onStart();
 
+        if (mGoogleSignInAccount != null) {
+            return;
+        }
         OptionalPendingResult<GoogleSignInResult> opr = Auth.GoogleSignInApi.silentSignIn(mGoogleApiClient);
         if (opr.isDone()) {
             // If the user's cached credentials are valid, the OptionalPendingResult will be "done"
             // and the GoogleSignInResult will be available instantly.
             Log.d(TAG, "Got cached sign-in");
-            handleSignInResult(opr.get());
+            GoogleSignInResult result = opr.get();
+            handleSignInResult(result.isSuccess(), result.getSignInAccount());
         } else {
             // If the user has not previously signed in on this device or the sign-in has expired,
             // this asynchronous branch will attempt to sign in the user silently.  Cross-device
@@ -152,7 +170,7 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
                 @Override
                 public void onResult(@NonNull GoogleSignInResult googleSignInResult) {
                     hideProgressDialog();
-                    handleSignInResult(googleSignInResult);
+                    handleSignInResult(googleSignInResult.isSuccess(), googleSignInResult.getSignInAccount());
                 }
             });
         }
@@ -175,12 +193,6 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        storage.onDestroy();
-    }
-
     /**
      * This method fires when any startActivityForResult finishes. The requestCode maps to
      * the value passed into startActivityForResult.
@@ -191,7 +203,13 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
         if (requestCode == RC_SIGN_IN) {
             if (resultCode == RESULT_OK) {
                 GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
-                handleSignInResult(result);
+                handleSignInResult(result.isSuccess(), result.getSignInAccount());
+            } else if (resultCode == RESULT_CANCELED) {
+                Log.d(TAG, "Login Result Canceled");
+                if (!USE_AUTH) {
+                    GoogleSignInAccount account = GoogleSignInAccount.zza("id", "token id", "max@sortedunderbelly.com", "display name", null, Long.MAX_VALUE, "obfuscated id", Sets.<Scope>newHashSet()).zzbI("serverauthcode");
+                    handleSignInResult(true, account);
+                }
             }
         } else if (requestCode == AUTH_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
@@ -200,16 +218,16 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
         }
     }
 
-    private void handleSignInResult(GoogleSignInResult result) {
-        Log.d(TAG, "handleSignInResult: " + result.isSuccess());
-        if (result.isSuccess() && result.getSignInAccount() != null) {
+    private void handleSignInResult(boolean isSuccess, GoogleSignInAccount account) {
+        Log.d(TAG, "handleSignInResult: " + isSuccess);
+        if (isSuccess && account != null) {
             // Signed into Google, now sign into the storage service
-            doStorageSignIn(result.getSignInAccount());
+            doStorageSignIn(account);
         } else {
             // Signed out, show unauthenticated UI.
             signOut();
-            updateUI(mGoogleSignInAccount);
         }
+        onAuthStateChanged(account);
     }
 
     @Override
@@ -250,6 +268,7 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
                             updateUI(null);
                         }
                     });
+            onAuthStateChanged(null);
         }
     }
 
@@ -265,6 +284,22 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
                 .show();
     }
 
+    private void refreshStats() {
+        int totalReceivedPardons = calcPardonSum(storage.getReceivedPardons());
+        receivedPardonsText.setText(String.format("%d", totalReceivedPardons));
+
+        int totalSentPardons = calcPardonSum(storage.getSentPardons());
+        sentPardonsText.setText(String.format("%d", totalSentPardons));
+    }
+
+    private int calcPardonSum(List<Pardons> pardons) {
+        int total = 0;
+        for (Pardons p : pardons) {
+            total += p.getQuantity();
+        }
+        return total;
+    }
+
     private void updateUI(GoogleSignInAccount acct) {
         if (acct != null) {
             findViewById(R.id.login_with_google).setVisibility(View.GONE);
@@ -277,6 +312,7 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
             findViewById(R.id.horz_line).setVisibility(View.GONE);
             findViewById(R.id.tabbed_fragment).setVisibility(View.GONE);
         }
+        refreshStats();
     }
 
     private void doStorageSignIn(final GoogleSignInAccount account) {
@@ -323,22 +359,6 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult result) {
         Log.e(TAG, result.toString());
-    }
-
-    private void fullRefresh() {
-        int totalReceivedPardons = calcPardonSum(storage.getReceivedPardons());
-        receivedPardonsText.setText(String.format("%d", totalReceivedPardons));
-
-        int totalSentPardons = calcPardonSum(storage.getSentPardons());
-        sentPardonsText.setText(String.format("%d", totalSentPardons));
-    }
-
-    private int calcPardonSum(List<Pardons> pardons) {
-        int total = 0;
-        for (Pardons p : pardons) {
-            total += p.getQuantity();
-        }
-        return total;
     }
 
     @Override
@@ -437,8 +457,10 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
 
 
     private void updateStats(int pardonsDelta, TextView textView, Class<?> intentActionClass) {
-        int newPardonsTotal = textToInt(textView) + pardonsDelta;
-        textView.setText(String.format("%d", newPardonsTotal));
+        if (textView != null) {
+            int newPardonsTotal = textToInt(textView) + pardonsDelta;
+            textView.setText(String.format("%d", newPardonsTotal));
+        }
         sendFragmentUpdate(intentActionClass);
     }
 
@@ -463,14 +485,11 @@ public class MainActivity extends FragmentActivity implements PardonStorage.Pard
         }
     }
 
-    @Override
-    public void onStorageAuthStateChanged(GoogleSignInAccount account) {
+    private void onAuthStateChanged(GoogleSignInAccount account) {
         if (account != null && !account.equals(mGoogleSignInAccount)) {
             supportInvalidateOptionsMenu();
-            fullRefresh();
         } else if (mGoogleSignInAccount != null && !mGoogleSignInAccount.equals(account)) {
             supportInvalidateOptionsMenu();
-            fullRefresh();
         }
 
         mGoogleSignInAccount = account;

@@ -1,7 +1,9 @@
 package com.sortedunderbelly.pardons.storage;
 
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.sortedunderbelly.pardons.MainActivity;
 import com.sortedunderbelly.pardons.Pardons;
+import com.sortedunderbelly.pardons.PardonsUIListener;
 
 import java.util.List;
 
@@ -9,25 +11,6 @@ import java.util.List;
  * Created by max.ross on 3/7/15.
  */
 public interface PardonStorage {
-
-    interface PardonsUIListener {
-        void onApprovePardonsRequest(Pardons pardonsRequest);
-        void onDenyPardonsRequest(Pardons pardonsRequest);
-
-        void onAddPardonsRequest(Pardons pardons);
-        void onRemovePardonsRequest(Pardons pardons);
-
-        void onAddSentPardons(Pardons pardons);
-        void onAddReceivedPardons(Pardons pardons);
-
-        void onChangePendingOutboundPardonsRequests();
-        void onChangePendingInboundPardonsRequests();
-        void onChangeDeniedOutboundPardonsRequests();
-        void onChangeDeniedInboundPardonsRequests();
-
-        void onStorageAuthStateChanged(GoogleSignInAccount account);
-        void onStorageAuthenticationError(String errorStr, String token);
-    }
 
     class StorageSignInResult {
         private final GoogleSignInAccount account;
