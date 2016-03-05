@@ -119,7 +119,7 @@ public class MainActivity extends FragmentActivity implements PardonsUIListener,
         sendPardonsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DialogFragment newFragment = new SendPardonDialogFragment();
+                DialogFragment newFragment = new NewPardonDialogFragment();
                 newFragment.show(getSupportFragmentManager(), "What is this?");
             }
         });
@@ -128,7 +128,7 @@ public class MainActivity extends FragmentActivity implements PardonsUIListener,
         requestPardonsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DialogFragment newFragment = new RequestPardonDialogFragment();
+                DialogFragment newFragment = new NewAccusationDialogFragment();
                 newFragment.show(getSupportFragmentManager(), "What is this?");
             }
         });
@@ -362,89 +362,67 @@ public class MainActivity extends FragmentActivity implements PardonsUIListener,
     }
 
     @Override
-    public void onAddSentPardons(Pardons pardons) {
+    public void onSentPardonsComplete(Pardons pardons) {
         updateStats(pardons.getQuantity(), sentPardonsText, SentPardonsFragment.class);
     }
 
     @Override
-    public void onApprovePardonsRequest(Pardons pardonsRequest) {
-        sendFragmentUpdate(PendingInboundRequestsPardonsFragment.class);
-        updateStats(pardonsRequest.getQuantity(), sentPardonsText,
+    public void onRespondToAccusationAgainstMeComplete(Pardons pardons) {
+        sendFragmentUpdate(AccusationsAgainstMeFragment.class);
+        updateStats(pardons.getQuantity(), sentPardonsText,
                 SentPardonsFragment.class);
     }
 
-    public void approvePardons(Pardons pardons) {
-        storage.approvePardonsRequest(pardons, this);
-        Toast.makeText(getApplicationContext(), R.string.acceptedRequestForPardonsText, Toast.LENGTH_SHORT).show();
+    public void respondToAccusation(Accusation accusation, Pardons pardons) {
+        storage.respondToAccusationAgainstMe(accusation, pardons, this);
+        Toast.makeText(getApplicationContext(), R.string.acceptedAccusationText, Toast.LENGTH_SHORT).show();
     }
 
-    public void sendPardonsToFriend(String recipient, String recipientDisplayName, int quantity, String reason) {
+    public void sendPardons(String recipient, String recipientDisplayName, int quantity, String reason) {
         Pardons pardons = new Pardons(mGoogleSignInAccount.getEmail(), mGoogleSignInAccount.getDisplayName(),
                 recipient, recipientDisplayName, new Date(), quantity, reason);
-        storage.addSentPardons(pardons, this);
+        storage.sendPardons(pardons, this);
         Toast.makeText(getApplicationContext(), R.string.pardonsSentText, Toast.LENGTH_SHORT).show();
     }
 
     @Override
-    public void onDenyPardonsRequest(Pardons pardonsRequest) {
-        sendFragmentUpdate(DeniedInboundRequestsPardonsFragment.class);
+    public void onMakeAccusationComplete(Accusation accusation) {
+        sendFragmentUpdate(AccusationsByMeFragment.class);
     }
 
-    public void denyPardons(Pardons pardons) {
-        storage.denyPardonsRequest(pardons, this);
-        Toast.makeText(getApplicationContext(), R.string.deniedRequestForPardonsText, Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onAddPardonsRequest(Pardons pardons) {
-        sendFragmentUpdate(PendingOutboundRequestsPardonsFragment.class);
-    }
-
-    public void requestPardons(String recipient, String recipientDisplayName, int quantity,
-                               String reason) {
-        Pardons pardons = new Pardons(recipient, recipientDisplayName, mGoogleSignInAccount.getEmail(),
-                mGoogleSignInAccount.getDisplayName(), new Date(), quantity, reason);
+    public void makeAccusation(String accused, String accusedDisplayName, String reason) {
+        Accusation accusation = new Accusation(mGoogleSignInAccount.getEmail(),
+                mGoogleSignInAccount.getDisplayName(), accused, accusedDisplayName, new Date(), reason);
         // If approved, these pardons will come from your friend.
-        storage.addPardonsRequest(pardons, this);
-        Toast.makeText(getApplicationContext(), R.string.pardonsRequestedText, Toast.LENGTH_SHORT).show();
+        storage.makeAccusation(accusation, this);
+        Toast.makeText(getApplicationContext(), R.string.accusationMadeText, Toast.LENGTH_SHORT).show();
     }
 
     @Override
-    public void onRemovePardonsRequest(Pardons pardons) {
-        updateStats(-pardons.getQuantity(), /* stat not displayed */ null,
-                PendingOutboundRequestsPardonsFragment.class);
+    public void onRetractAccusationComplete(Accusation accusation) {
+        updateStats(0, /* stat not displayed */ null, AccusationsByMeFragment.class);
     }
 
-    public void retractRequestForPardons(Pardons pardons) {
-        storage.removePardonsRequest(pardons, this);
-        Toast.makeText(getApplicationContext(), R.string.pardonsRetractedText, Toast.LENGTH_SHORT).show();
+    public void retractAccusation(Accusation accusation) {
+        storage.retractAccusation(accusation, this);
+        Toast.makeText(getApplicationContext(), R.string.accusationRetractedText, Toast.LENGTH_SHORT).show();
     }
 
     @Override
-    public void onAddReceivedPardons(Pardons pardons) {
+    public void onReceivedPardonsComplete(Pardons pardons) {
         // not exposed in the user's own UI - only triggered via storage
         updateStats(pardons.getQuantity(), receivedPardonsText,
                 ReceivedPardonsFragment.class);
     }
 
     @Override
-    public void onChangePendingOutboundPardonsRequests() {
-        sendFragmentUpdate(PendingOutboundRequestsPardonsFragment.class);
+    public void onChangeMyAccusations() {
+        sendFragmentUpdate(AccusationsByMeFragment.class);
     }
 
     @Override
-    public void onChangePendingInboundPardonsRequests() {
-        sendFragmentUpdate(PendingInboundRequestsPardonsFragment.class);
-    }
-
-    @Override
-    public void onChangeDeniedOutboundPardonsRequests() {
-        sendFragmentUpdate(DeniedOutboundRequestsPardonsFragment.class);
-    }
-
-    @Override
-    public void onChangeDeniedInboundPardonsRequests() {
-        sendFragmentUpdate(DeniedInboundRequestsPardonsFragment.class);
+    public void onAccusationAgainstMeChangeComplete() {
+        sendFragmentUpdate(AccusationsAgainstMeFragment.class);
     }
 
     private int textToInt(TextView textView) {

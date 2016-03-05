@@ -2,6 +2,7 @@ package com.sortedunderbelly.pardons.storage;
 
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.common.collect.Lists;
+import com.sortedunderbelly.pardons.Accusation;
 import com.sortedunderbelly.pardons.Pardons;
 import com.sortedunderbelly.pardons.PardonsUIListener;
 import com.sortedunderbelly.pardons.PardonsUIListenerProvider;
@@ -23,10 +24,8 @@ public class InMemoryPardonStorage implements PardonStorage {
     private final PardonsUIListenerProvider pardonsUIListenerProvider;
     private final LinkedList<Pardons> receivedPardons = Lists.newLinkedList();
     private final LinkedList<Pardons> sentPardons = Lists.newLinkedList();
-    private final LinkedList<Pardons> pendingOutboundPardonsRequests = Lists.newLinkedList();
-    private final LinkedList<Pardons> deniedOutboundPardonsRequests = Lists.newLinkedList();
-    private final LinkedList<Pardons> pendingInboundPardonsRequests = Lists.newLinkedList();
-    private final LinkedList<Pardons> deniedInboundPardonsRequests = Lists.newLinkedList();
+    private final LinkedList<Accusation> myAccusations = Lists.newLinkedList();
+    private final LinkedList<Accusation> accusationsAgainstMe = Lists.newLinkedList();
 
     public InMemoryPardonStorage(PardonsUIListenerProvider pardonsUIListenerProvider) {
         this.pardonsUIListenerProvider = pardonsUIListenerProvider;
@@ -40,21 +39,21 @@ public class InMemoryPardonStorage implements PardonStorage {
                 "max@example.com", "Max Ross", "daphne@example.com", "Daphne Ross",
                 5, "poor laundry choices"));
 
-        pendingInboundPardonsRequests.add(newPardon(2015, Calendar.AUGUST, 19,
+        accusationsAgainstMe.add(newAccusation(2015, Calendar.AUGUST, 19,
                 "max@example.com", "Max Ross", "violet@example.com", "Violet Ross",
-                6, "stepped on Molly"));
+                "stepped on Molly"));
 
         receivedPardons.add(newPardon(2014, Calendar.APRIL, 1,
                 "daphne@example.com", "Daphne Ross", "max@example.com", "Max Ross",
                 1000, "clogged toilet"));
 
-        pendingOutboundPardonsRequests.add(newPardon(2015, Calendar.FEBRUARY, 18,
+        myAccusations.add(newAccusation(2015, Calendar.FEBRUARY, 18,
                 "violet@example.com", "Violet Ross", "max@example.com", "Max Ross",
-                23, "shoes on table"));
+                "shoes on table"));
 
-        pendingOutboundPardonsRequests.add(newPardon(2014, Calendar.OCTOBER, 10,
+        myAccusations.add(newAccusation(2014, Calendar.OCTOBER, 10,
                 "daphne@example.com", "Daphne Ross", "max@example.com", "Max Ross",
-                4, "ate last cookie"));
+                "ate last cookie"));
 
         authWithOAuthToken("dummy", new StorageSignInResult(null, "dummy token"));
     }
@@ -68,13 +67,22 @@ public class InMemoryPardonStorage implements PardonStorage {
                 quantity, reason);
     }
 
+    private Accusation newAccusation(int year, int month, int dayOfMonth, String from,
+                             String fromDisplayName, String to, String toDisplayName,
+                             String reason) {
+        Calendar cal = Calendar.getInstance();
+        cal.set(year, month, dayOfMonth);
+        return new Accusation(getNextId(), from, fromDisplayName, to, toDisplayName, cal.getTime(),
+                reason);
+    }
+
     @Override
     public List<Pardons> getReceivedPardons() {
         return Collections.unmodifiableList(receivedPardons);
     }
 
     @Override
-    public void addReceivedPardons(Pardons pardons) {
+    public void receivePardons(Pardons pardons) {
         addToList(pardonsWithId(pardons), receivedPardons);
     }
 
@@ -84,60 +92,48 @@ public class InMemoryPardonStorage implements PardonStorage {
     }
 
     @Override
-    public void addSentPardons(Pardons pardons, PardonsUIListener listener) {
+    public void sendPardons(Pardons pardons, PardonsUIListener listener) {
         addToList(pardonsWithId(pardons), sentPardons);
-        listener.onAddSentPardons(pardons);
+        listener.onSentPardonsComplete(pardons);
     }
 
     @Override
-    public List<Pardons> getPendingOutboundPardonsRequests() {
-        return Collections.unmodifiableList(pendingOutboundPardonsRequests);
+    public List<Accusation> getMyAccusations() {
+        return Collections.unmodifiableList(myAccusations);
     }
 
     @Override
-    public List<Pardons> getDeniedOutboundPardonsRequests() {
-        return Collections.unmodifiableList(deniedOutboundPardonsRequests);
+    public void makeAccusation(Accusation accusation, PardonsUIListener listener) {
+        addToList(accusationWithId(accusation), myAccusations);
+        listener.onMakeAccusationComplete(accusation);
     }
 
     @Override
-    public void addPardonsRequest(Pardons pardons, PardonsUIListener listener) {
-        addToList(pardonsWithId(pardons), pendingOutboundPardonsRequests);
-        listener.onAddPardonsRequest(pardons);
+    public void retractAccusation(Accusation accusation, PardonsUIListener listener) {
+        myAccusations.remove(accusation);
+        listener.onRetractAccusationComplete(accusation);
     }
 
     @Override
-    public void removePardonsRequest(Pardons pardons, PardonsUIListener listener) {
-        pendingOutboundPardonsRequests.remove(pardons);
-        listener.onRemovePardonsRequest(pardons);
+    public List<Accusation> getAccusationsAgainstMe() {
+        return Collections.unmodifiableList(accusationsAgainstMe);
     }
 
     @Override
-    public List<Pardons> getPendingInboundPardonsRequests() {
-        return Collections.unmodifiableList(pendingInboundPardonsRequests);
-    }
-
-    @Override
-    public List<Pardons> getDeniedInboundPardonsRequests() {
-        return Collections.unmodifiableList(deniedInboundPardonsRequests);
-    }
-
-    @Override
-    public void approvePardonsRequest(Pardons pardonsRequest, PardonsUIListener listener) {
-        pendingInboundPardonsRequests.remove(pardonsRequest);
-        sentPardons.add(pardonsRequest);
-        listener.onApprovePardonsRequest(pardonsRequest);
-    }
-
-    @Override
-    public void denyPardonsRequest(Pardons pardonsRequest, PardonsUIListener listener) {
-        pendingInboundPardonsRequests.remove(pardonsRequest);
-        deniedInboundPardonsRequests.add(pardonsRequest);
-        listener.onDenyPardonsRequest(pardonsRequest);
+    public void respondToAccusationAgainstMe(Accusation accusation, Pardons derivedPardons, PardonsUIListener listener) {
+        accusationsAgainstMe.remove(derivedPardons);
+        sentPardons.add(derivedPardons);
+        listener.onRespondToAccusationAgainstMeComplete(derivedPardons);
     }
 
     private static void addToList(Pardons pardons, LinkedList<Pardons> list) {
         // newest goes at the front
         list.addFirst(pardonsWithId(pardons));
+    }
+
+    private static void addToList(Accusation accusation, LinkedList<Accusation> list) {
+        // newest goes at the front
+        list.addFirst(accusationWithId(accusation));
     }
 
     private static Pardons pardonsWithId(Pardons pardons) {
@@ -153,6 +149,20 @@ public class InMemoryPardonStorage implements PardonStorage {
                     pardons.getReason());
         }
         return pardons;
+    }
+
+    private static Accusation accusationWithId(Accusation accusation) {
+        if (!accusation.hasId()) {
+            return new Accusation(
+                    getNextId(),
+                    accusation.getAccuser(),
+                    accusation.getAccuserDisplay(),
+                    accusation.getAccused(),
+                    accusation.getAccusedDisplay(),
+                    accusation.getDate(),
+                    accusation.getReason());
+        }
+        return accusation;
     }
 
     private static String getNextId() {

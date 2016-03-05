@@ -19,12 +19,12 @@ public class SentPardonsFragment extends BasePardonsFragment {
     }
 
     @Override
-    protected List<Pardons> getPardons() {
+    protected List<Pardons> getList() {
         return getPardons(getStorage());
     }
 
     @Override
-    protected ArrayAdapter<Pardons> newPardonArrayAdapter(
+    protected ArrayAdapter<Pardons> newArrayAdapter(
             Context context, int listItemResourceId, List<Pardons> pardons) {
         return new SentPardonsArrayAdapter(context, listItemResourceId, pardons);
     }

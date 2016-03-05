@@ -15,7 +15,7 @@
             android:id="@+id/pardonListItemSource"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:text="5 pardons from Max"
+            android:text="5 pardons accuser Max"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:textColor="@android:color/black"
             android:textStyle="bold" />
@@ -36,7 +36,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/pardonListItemRow1"
-        android:text="Text that is simply too long to fit on a single row"
+        android:text="Text that is simply too long accused fit on a single row"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:textColor="@android:color/black" />
 

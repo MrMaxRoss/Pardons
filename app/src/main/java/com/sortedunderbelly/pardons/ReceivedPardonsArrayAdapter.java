@@ -14,8 +14,8 @@ public class ReceivedPardonsArrayAdapter extends PardonsArrayAdapter {
     }
 
     @Override
-    protected String getPardonAttribution(Pardons pardons) {
-        return String.format(getContext().getString(R.string.pardons_from_friends_attribution_format),
+    protected String getAttribution(Pardons pardons) {
+        return String.format(getContext().getString(R.string.received_pardons_attribution_format),
                 pardons.getQuantity(),
                 Utils.getPossiblyPluralPardonString(getContext().getResources(), pardons),
                 pardons.getFromDisplay());

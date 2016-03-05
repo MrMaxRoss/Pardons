@@ -1,6 +1,7 @@
 package com.sortedunderbelly.pardons.storage;
 
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.sortedunderbelly.pardons.Accusation;
 import com.sortedunderbelly.pardons.MainActivity;
 import com.sortedunderbelly.pardons.Pardons;
 import com.sortedunderbelly.pardons.PardonsUIListener;
@@ -37,25 +38,13 @@ public interface PardonStorage {
 
 
     List<Pardons> getReceivedPardons();
-    void addReceivedPardons(Pardons pardons);
-
     List<Pardons> getSentPardons();
-    void addSentPardons(Pardons pardons, PardonsUIListener listener);
-    
-    // Request Management
+    List<Accusation> getMyAccusations();
+    List<Accusation> getAccusationsAgainstMe();
 
-    // Managing requests you made to your friends
-    List<Pardons> getPendingOutboundPardonsRequests();
-    List<Pardons> getDeniedOutboundPardonsRequests();
-    
-    void addPardonsRequest(Pardons pardons, PardonsUIListener listener);
-    // You retracted your request for pardons
-    void removePardonsRequest(Pardons pardons, PardonsUIListener listener);
-    
-    // Managing requests your friends made to you
-    List<Pardons> getPendingInboundPardonsRequests();
-    List<Pardons> getDeniedInboundPardonsRequests();
-
-    void approvePardonsRequest(Pardons pardonsRequest, PardonsUIListener listener);
-    void denyPardonsRequest(Pardons pardonsRequest, PardonsUIListener listener);
+    void receivePardons(Pardons pardons);
+    void sendPardons(Pardons pardons, PardonsUIListener listener);
+    void makeAccusation(Accusation accusation, PardonsUIListener listener);
+    void retractAccusation(Accusation accusation, PardonsUIListener listener);
+    void respondToAccusationAgainstMe(Accusation accusation, Pardons derivedPardons, PardonsUIListener listener);
 }

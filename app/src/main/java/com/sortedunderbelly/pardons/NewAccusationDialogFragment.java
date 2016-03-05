@@ -17,19 +17,18 @@ import android.widget.EditText;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 
-/**Introdu
+/**
  * Fragment that displays the dialog where the user sends a new pardon.
  * <p/>
  * Created by max.ross on 8/8/15.
  */
-public class NewPardonDialogFragment extends DialogFragment {
+public class NewAccusationDialogFragment extends DialogFragment {
 
     private static final int CONTACT_PICKER_RESULT = 1001;
 
-    String pardonTargetPhoneNumber;
-    EditText pardonTargetDisplayName;
-    EditText pardonQuantityText;
-    EditText pardonReasonText;
+    String accusationTargetPhoneNumber;
+    EditText accusationTargetDisplayName;
+    EditText accusationReasonText;
 
     @NonNull
     @Override
@@ -37,12 +36,11 @@ public class NewPardonDialogFragment extends DialogFragment {
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        View view = inflater.inflate(R.layout.send_pardon, null);
-        pardonTargetPhoneNumber = null;
-        pardonTargetDisplayName = (EditText) view.findViewById(R.id.pardon_target_display_name);
-        pardonTargetDisplayName.setHint(getPardonTargetDisplayNameHintResId());
-        pardonQuantityText = (EditText) view.findViewById(R.id.pardonQuantityText);
-        pardonReasonText = (EditText) view.findViewById(R.id.pardonReasonText);
+        View view = inflater.inflate(R.layout.make_accusation, null);
+        accusationTargetPhoneNumber = null;
+        accusationTargetDisplayName = (EditText) view.findViewById(R.id.accusation_target_display_name);
+        accusationTargetDisplayName.setHint(getPardonTargetDisplayNameHintResId());
+        accusationReasonText = (EditText) view.findViewById(R.id.accusationReasonText);
 
         Button contactSelectorButton = (Button) view.findViewById(R.id.do_target_picker);
         contactSelectorButton.setOnClickListener(new View.OnClickListener() {
@@ -70,18 +68,6 @@ public class NewPardonDialogFragment extends DialogFragment {
         return builder.create();
     }
 
-    protected int getPardonTargetDisplayNameHintResId() {
-        return R.string.send_pardon_display_name_hint;
-    }
-
-    protected int getNewPardonDialogPositiveButtonTextResId() {
-        return R.string.sendPardonButtonText;
-    }
-
-    protected void onNewPardonClick(String phoneNumber, String displayName, int quantity, String reason) {
-        getMainActivity().sendPardons(phoneNumber, displayName, quantity, reason);
-    }
-
     @Override
     public void onStart() {
         super.onStart();
@@ -95,17 +81,14 @@ public class NewPardonDialogFragment extends DialogFragment {
                     // TODO(max.ross) Make the display name field only editable via the
                     // contact chooser so we are guaranteed to get the phone number
                     // behind the scenes.
-                    if (!isNullOrEmpty(pardonTargetPhoneNumber) &&
-                            hasText(pardonTargetDisplayName) &&
-                            hasText(pardonReasonText) &&
-                            hasText(pardonQuantityText) &&
-                            Integer.parseInt(pardonQuantityText.getText().toString()) > 0) {
+                    if (!isNullOrEmpty(accusationTargetPhoneNumber) &&
+                            hasText(accusationTargetDisplayName) &&
+                            hasText(accusationReasonText)) {
                         dismiss();
-                        onNewPardonClick(
-                                pardonTargetPhoneNumber,
-                                pardonTargetDisplayName.getText().toString(),
-                                Integer.parseInt(pardonQuantityText.getText().toString()),
-                                pardonReasonText.getText().toString());
+                        onNewAccusationClick(
+                                accusationTargetPhoneNumber,
+                                accusationTargetDisplayName.getText().toString(),
+                                accusationReasonText.getText().toString());
                     } else {
                         // display message asking user to provide target and reason
                         Utils.simpleErrorDialog(getActivity(),
@@ -117,18 +100,31 @@ public class NewPardonDialogFragment extends DialogFragment {
         }
     }
 
+    protected void onNewAccusationClick(
+            String phoneNumber, String displayName, String reason) {
+        getMainActivity().makeAccusation(phoneNumber, displayName, reason);
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == Activity.RESULT_OK) {
             switch (requestCode) {
                 case CONTACT_PICKER_RESULT:
-                    pardonTargetPhoneNumber =
-                            ContactPickerHelper.handleContactResults(getActivity(), data, pardonTargetDisplayName);
-                    break;
+                    accusationTargetPhoneNumber =
+                            ContactPickerHelper.handleContactResults(getActivity(), data, accusationTargetDisplayName);
+                        break;
             }
         }
         // TODO(max.ross) handle failure case
+    }
+
+    protected int getPardonTargetDisplayNameHintResId() {
+        return R.string.make_accusation_display_name_hint;
+    }
+
+    protected int getNewPardonDialogPositiveButtonTextResId() {
+        return R.string.accuseButtonText;
     }
 
     protected MainActivity getMainActivity() {

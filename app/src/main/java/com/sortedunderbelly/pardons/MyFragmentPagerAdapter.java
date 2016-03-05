@@ -28,8 +28,8 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
 
     private final MainActivity activity;
 
-    private final ImmutableMap<Class<? extends BasePardonsFragment>, FragmentData> fragmentData;
-    private final ImmutableList<Class<? extends BasePardonsFragment>> fragmentClassList;
+    private final ImmutableMap<Class<? extends BaseFragment>, FragmentData> fragmentData;
+    private final ImmutableList<Class<? extends BaseFragment>> fragmentClassList;
 
 
     public MyFragmentPagerAdapter(FragmentManager fm, MainActivity activity) {
@@ -38,21 +38,13 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
         final PardonStorage storage = activity.getStorage();
         // TODO(max.ross): Stop calling size on the returned lists. This won't scale.
         // You'll need some sort of approximation provided by the storage layer.
-        fragmentData = new ImmutableMap.Builder<Class<? extends BasePardonsFragment>, FragmentData>()
+        fragmentData = new ImmutableMap.Builder<Class<? extends BaseFragment>, FragmentData>()
                 .put(ReceivedPardonsFragment.class,
                         new FragmentData(R.string.received_pardons_tab_title,
                                 new Callable<Integer>() {
                                     @Override
                                     public Integer call() throws Exception {
                                         return ReceivedPardonsFragment.getPardons(storage).size();
-                                    }
-                                }))
-                .put(PendingOutboundRequestsPardonsFragment.class,
-                        new FragmentData(R.string.pending_outbound_requests_tab_title,
-                                new Callable<Integer>() {
-                                    @Override
-                                    public Integer call() throws Exception {
-                                        return PendingOutboundRequestsPardonsFragment.getPardons(storage).size();
                                     }
                                 }))
                 .put(SentPardonsFragment.class,
@@ -63,28 +55,20 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
                                         return SentPardonsFragment.getPardons(storage).size();
                                     }
                                 }))
-                .put(PendingInboundRequestsPardonsFragment.class,
-                        new FragmentData(R.string.pending_inbound_requests_tab_title,
+                .put(AccusationsByMeFragment.class,
+                        new FragmentData(R.string.i_accuse,
                                 new Callable<Integer>() {
                                     @Override
                                     public Integer call() throws Exception {
-                                        return PendingInboundRequestsPardonsFragment.getPardons(storage).size();
+                                        return AccusationsByMeFragment.getAccusations(storage).size();
                                     }
                                 }))
-                .put(DeniedInboundRequestsPardonsFragment.class,
-                        new FragmentData(R.string.denied_inbound_requests_tab_title,
+                .put(AccusationsAgainstMeFragment.class,
+                        new FragmentData(R.string.i_am_accused_by,
                                 new Callable<Integer>() {
                                     @Override
                                     public Integer call() throws Exception {
-                                        return DeniedInboundRequestsPardonsFragment.getPardons(storage).size();
-                                    }
-                                }))
-                .put(DeniedOutboundRequestsPardonsFragment.class,
-                        new FragmentData(R.string.denied_outbound_requests_tab_title,
-                                new Callable<Integer>() {
-                                    @Override
-                                    public Integer call() throws Exception {
-                                        return DeniedOutboundRequestsPardonsFragment.getPardons(storage).size();
+                                        return AccusationsAgainstMeFragment.getAccusations(storage).size();
                                     }
                                 })).build();
         fragmentClassList = ImmutableList.copyOf(fragmentData.keySet());

@@ -15,40 +15,39 @@ import com.sortedunderbelly.pardons.storage.PardonStorage;
 
 import java.util.List;
 
-import static com.sortedunderbelly.pardons.Utils.getPossiblyPluralPardonString;
 import static com.sortedunderbelly.pardons.Utils.simpleErrorDialog;
 
 /**
  * Created by max.ross on 8/9/15.
  */
-public class PendingOutboundRequestsPardonsFragment extends BasePardonsFragment {
+public class AccusationsByMeFragment extends BaseAccusationFragment {
 
-    public static List<Pardons> getPardons(PardonStorage storage) {
-        return storage.getPendingOutboundPardonsRequests();
+    public static List<Accusation> getAccusations(PardonStorage storage) {
+        return storage.getMyAccusations();
     }
 
     @Override
-    protected List<Pardons> getPardons() {
-        return getPardons(getStorage());
+    protected List<Accusation> getList() {
+        return getAccusations(getStorage());
     }
 
     @Override
-    protected ArrayAdapter<Pardons> newPardonArrayAdapter(
-            Context context, int listItemResourceId, List<Pardons> pardons) {
+    protected ArrayAdapter<Accusation> newArrayAdapter(
+            Context context, int listItemResourceId, List<Accusation> accusations) {
         // We use the Received adapter because it's the exact same display
-        return new ReceivedPardonsArrayAdapter(context, listItemResourceId, pardons);
+        return new AccusationsByMeArrayAdapter(context, listItemResourceId, accusations);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = super.onCreateView(inflater, container, savedInstanceState);
-        final ListView listView = (ListView) view.findViewById(R.id.pardons_listview);
+        final ListView listView = (ListView) view.findViewById(R.id.accusations_listview);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                final Pardons pardons = (Pardons) listView.getAdapter().getItem(position);
-                if (pardons == null) {
-                    simpleErrorDialog(getActivity(), getResources(), R.string.invalid_pardon_reference);
+                final Accusation accusation = (Accusation) listView.getAdapter().getItem(position);
+                if (accusation == null) {
+                    simpleErrorDialog(getActivity(), getResources(), R.string.invalid_accusation_reference);
                     return;
                 }
 
@@ -56,12 +55,10 @@ public class PendingOutboundRequestsPardonsFragment extends BasePardonsFragment 
                 AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
                 // set the AlertDialog's title
-                builder.setTitle(getString(R.string.retract_request_dialog_title));
+                builder.setTitle(getString(R.string.retract_accusation_dialog_title));
                 builder.setIcon(android.R.drawable.ic_dialog_alert);
-                builder.setMessage(String.format(getString(R.string.retract_request_dialog_message),
-                        pardons.getQuantity(),
-                        getPossiblyPluralPardonString(getResources(), pardons),
-                        pardons.getFromDisplay()));
+                builder.setMessage(String.format(getString(R.string.retract_accusation_dialog_message),
+                        accusation.getAccusedDisplay()));
 
                 // set the AlertDialog's negative Button
                 builder.setNegativeButton(getString(R.string.cancel),
@@ -74,10 +71,10 @@ public class PendingOutboundRequestsPardonsFragment extends BasePardonsFragment 
                 );
                 // set the AlertDialog's positive Button
                 builder.setPositiveButton(
-                        getString(R.string.retract_request_dialog_positive_button_label),
+                        getString(R.string.retract_accusation_dialog_positive_button_label),
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
-                                getMainActivity().retractRequestForPardons(pardons);
+                                getMainActivity().retractAccusation(accusation);
                             }
                         }
                 );

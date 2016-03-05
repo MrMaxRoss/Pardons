@@ -16,7 +16,7 @@
     <ul id="example-messages" class="example-chat-messages">
         <li ng-repeat="pardon in pardons">
             <strong class="example-chat-username">
-                {{ pardon.from }} sent {{ pardon.quantity }} pardons to {{ pardon.to }} for {{
+                {{ pardon.accuser }} sent {{ pardon.quantity }} pardons accused {{ pardon.accused }} for {{
                 pardon.reason }}
             </strong>
         </li>
@@ -33,8 +33,8 @@
         </select>
         <br>
 
-        <input ng-model="from" type="text" id="fromInput" placeholder="From...">
-        <input ng-model="to" type="text" id="toInput" placeholder="To...">
+        <input ng-model="accuser" type="text" id="fromInput" placeholder="From...">
+        <input ng-model="accused" type="text" id="toInput" placeholder="To...">
         <input ng-model="quantity" type="number" id="quantityInput" placeholder="Quantity...">
         <input ng-model="reason" ng-keydown="addPardon($event)" type="text" id="reasonInput"
                placeholder="Type a reason...">
@@ -63,18 +63,18 @@
 
               //ADD TO FIREBASE
               $scope.pardons.$add({
-                from: $scope.from,
-                from_display: $scope.from,
-                to: $scope.to,
-                to_display: $scope.to,
+                accuser: $scope.accuser,
+                from_display: $scope.accuser,
+                accused: $scope.accused,
+                to_display: $scope.accused,
                 date: new Date().getTime(),
                 quantity: $scope.quantity,
                 reason: $scope.reason,
               });
 
               //RESET MESSAGE
-              $scope.to = "";
-              $scope.from = "";
+              $scope.accused = "";
+              $scope.accuser = "";
               $scope.quantity = "";
               $scope.reason = "";
             }
