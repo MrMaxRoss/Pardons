@@ -38,7 +38,7 @@
     <string name="pardonsSentText">Sent Pardons!</string>
     <string name="deniedAccusationText">Denied Accusation!</string>
     <string name="retract_accusation_dialog_message">Retract accusation against %1$s?</string>
-    <string name="send_accusation_dialog_message">You have accused %1$s.</string>
+    <string name="review_accusation_against_me_dialog_message">You have been accused by %1$s.</string>
     <string name="singular_pardon_string">pardon</string>
     <string name="plural_pardon_string">pardons</string>
     <string name="received_pardons_attribution_format">%1$d %2$s from %3$s</string>

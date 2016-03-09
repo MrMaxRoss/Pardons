@@ -54,7 +54,7 @@ public class MainActivity extends FragmentActivity implements PardonsUIListener,
     private static final int RC_SIGN_IN = 9001;
     private static final int AUTH_REQUEST_CODE = 9002;
 
-    private static boolean USE_AUTH = false;
+    private static boolean USE_AUTH = true;
 
     /* Begin Static State - does not change when we get a new instance of the MainActivity */
     private static PardonStorage storage;

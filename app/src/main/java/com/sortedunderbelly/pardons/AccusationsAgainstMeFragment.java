@@ -57,8 +57,8 @@ public class AccusationsAgainstMeFragment extends BaseAccusationFragment {
                 builder.setTitle(getString(R.string.review_accusation_dialog_title));
                 builder.setIcon(android.R.drawable.ic_dialog_alert);
 
-                builder.setMessage(String.format(getString(R.string.send_accusation_dialog_message),
-                        accusation.getAccusedDisplay()));
+                builder.setMessage(String.format(getString(R.string.review_accusation_against_me_dialog_message),
+                        accusation.getAccuserDisplay()));
 
                 // We map neutral to cancel because that appears on the left.
                 builder.setNeutralButton(getString(R.string.cancel),
@@ -71,15 +71,15 @@ public class AccusationsAgainstMeFragment extends BaseAccusationFragment {
                 );
 
                 // TODO(max.ross): Give people a way to deny accusations and explain why.
-//                // this is the 2nd button displayed
-//                builder.setNegativeButton(
-//                        getString(R.string.review_accusation_dialog_deny_button_label),
-//                        new DialogInterface.OnClickListener() {
-//                            public void onClick(DialogInterface dialog, int id) {
-//                                getMainActivity().denyPardons(pardons);
-//                            }
-//                        }
-//                );
+                // this is the 2nd button displayed
+                builder.setNegativeButton(
+                        getString(R.string.review_accusation_dialog_deny_button_label),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                getMainActivity().respondToAccusation(accusation, pardons);
+                            }
+                        }
+                );
 
                 // this is the 3rd button displayed
                 builder.setPositiveButton(
