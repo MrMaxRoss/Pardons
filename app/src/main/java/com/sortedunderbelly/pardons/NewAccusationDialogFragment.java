@@ -92,7 +92,7 @@ public class NewAccusationDialogFragment extends DialogFragment {
                     } else {
                         // display message asking user to provide target and reason
                         Utils.simpleErrorDialog(getActivity(),
-                                getResources(), R.string.missingMessage);
+                                getResources(), R.string.missingPardonDataMessage);
                         // dialog stays open
                     }
                 }

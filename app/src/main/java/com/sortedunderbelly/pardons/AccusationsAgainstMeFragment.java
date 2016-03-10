@@ -52,9 +52,9 @@ public class AccusationsAgainstMeFragment extends BaseAccusationFragment {
                     return;
                 }
 
-                DialogFragment newFragment = new NewPardonDialogFragment();
+                DialogFragment newFragment = new NewPardonFromAccusationDialogFragment();
                 Bundle args = new Bundle();
-                args.putSerializable(NewPardonDialogFragment.ACCUSATION, accusation);
+                args.putSerializable(NewPardonFromAccusationDialogFragment.ACCUSATION, accusation);
                 newFragment.setArguments(args);
                 newFragment.show(getFragmentManager(), "What is this?");
 

@@ -9,7 +9,8 @@
     <string name="pardonReasonDefault">Reason</string>
     <string name="pardonRecipientSpinnerPrompt">Select Recipient</string>
     <string name="accusationMadeText">Accusation Made!</string>
-    <string name="missingMessage">Enter recipient, quantity, and reason.</string>
+    <string name="missingPardonDataMessage">Enter recipient, quantity, and reason.</string>
+    <string name="missingPardonFromAccusationDataMessage">Enter quantity.</string>
     <string name="pardonQuantityDefault">Quantity</string>
     <string name="sentPardonsText">Sent:</string>
     <string name="receivedPardonsText">Received:</string>
@@ -51,4 +52,9 @@
     <string name="action_logout">Sign Out</string>
     <string name="google_app_id">476650518726</string>
     <string name="signed_out">Not Signed In</string>
+    <string name="pardon_from_accusation_target_display_label">Pardons For</string>
+    <string name="pardon_from_accusation_target_display_value">Name Val</string>
+    <string name="pardon_from_accusation_reason_label">Reason</string>
+    <string name="pardon_from_accusation_reason_value">Reason Val</string>
+    <string name="pardon_from_accusation_quantity_label">Quantity</string>
 </resources>

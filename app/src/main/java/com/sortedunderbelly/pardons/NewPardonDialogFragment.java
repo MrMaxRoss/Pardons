@@ -18,7 +18,7 @@ import android.widget.EditText;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 
-/**Introdu
+/**
  * Fragment that displays the dialog where the user sends a new pardon.
  * <p/>
  * Created by max.ross on 8/8/15.
@@ -42,16 +42,16 @@ public class NewPardonDialogFragment extends DialogFragment {
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        View view = inflater.inflate(R.layout.send_pardon, null);
+        View view = inflater.inflate(R.layout.create_pardon, null);
         pardonTargetPhoneNumber = null;
         pardonTargetDisplayName = (EditText) view.findViewById(R.id.pardon_target_display_name);
-        pardonTargetDisplayName.setHint(getPardonTargetDisplayNameHintResId());
+        pardonTargetDisplayName.setHint(R.string.send_pardon_display_name_hint);
         pardonQuantityText = (EditText) view.findViewById(R.id.pardonQuantityText);
         pardonReasonText = (EditText) view.findViewById(R.id.pardonReasonText);
 
         Button contactSelectorButton = (Button) view.findViewById(R.id.do_target_picker);
         builder.setView(view)
-                .setPositiveButton(getNewPardonDialogPositiveButtonTextResId(), new DialogInterface.OnClickListener() {
+                .setPositiveButton(R.string.sendPardonButtonText, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         // do nothing here because we override to change the close behavior.
@@ -63,8 +63,7 @@ public class NewPardonDialogFragment extends DialogFragment {
                         // nothing to do
                     }
                 });
-        // TODO(max.ross): Add pardon icon
-        // builder.setIcon(android.R.drawable.ic_dialog_alert);
+
         accusation = (Accusation) getArguments().getSerializable(NewPardonDialogFragment.ACCUSATION);
         if (accusation != null) {
             pardonTargetDisplayName.setText(accusation.getAccuser());
@@ -87,14 +86,6 @@ public class NewPardonDialogFragment extends DialogFragment {
             });
         }
         return builder.create();
-    }
-
-    protected int getPardonTargetDisplayNameHintResId() {
-        return R.string.send_pardon_display_name_hint;
-    }
-
-    protected int getNewPardonDialogPositiveButtonTextResId() {
-        return R.string.sendPardonButtonText;
     }
 
     @Override
@@ -127,9 +118,9 @@ public class NewPardonDialogFragment extends DialogFragment {
                                     Integer.parseInt(pardonQuantityText.getText().toString()));
                         }
                     } else {
-                        // display message asking user to provide target and reason
+                        // display message asking user to provide target, reason, and quantity
                         Utils.simpleErrorDialog(getActivity(),
-                                getResources(), R.string.missingMessage);
+                                getResources(), R.string.missingPardonDataMessage);
                         // dialog stays open
                     }
                 }
