@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,10 +27,14 @@ public class NewPardonDialogFragment extends DialogFragment {
 
     private static final int CONTACT_PICKER_RESULT = 1001;
 
+    public static final String ACCUSATION = "accusation";
+
     String pardonTargetPhoneNumber;
     EditText pardonTargetDisplayName;
     EditText pardonQuantityText;
     EditText pardonReasonText;
+    @Nullable
+    Accusation accusation;
 
     @NonNull
     @Override
@@ -45,13 +50,6 @@ public class NewPardonDialogFragment extends DialogFragment {
         pardonReasonText = (EditText) view.findViewById(R.id.pardonReasonText);
 
         Button contactSelectorButton = (Button) view.findViewById(R.id.do_target_picker);
-        contactSelectorButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent contactPickerIntent = new Intent(Intent.ACTION_PICK, Phone.CONTENT_URI);
-                startActivityForResult(contactPickerIntent, CONTACT_PICKER_RESULT);
-            }
-        });
         builder.setView(view)
                 .setPositiveButton(getNewPardonDialogPositiveButtonTextResId(), new DialogInterface.OnClickListener() {
                     @Override
@@ -67,6 +65,27 @@ public class NewPardonDialogFragment extends DialogFragment {
                 });
         // TODO(max.ross): Add pardon icon
         // builder.setIcon(android.R.drawable.ic_dialog_alert);
+        accusation = (Accusation) getArguments().getSerializable(NewPardonDialogFragment.ACCUSATION);
+        if (accusation != null) {
+            pardonTargetDisplayName.setText(accusation.getAccuser());
+            // can't edit the target display name if it was provided
+            pardonTargetDisplayName.setEnabled(false);
+            pardonTargetPhoneNumber = "blar!";
+            pardonReasonText.setText(accusation.getReason());
+            // can't edit the reason if an accusation was provided
+            pardonReasonText.setEnabled(false);
+
+            // hide the contact picker button if an accusation was provided
+            contactSelectorButton.setVisibility(View.GONE);
+        } else {
+            contactSelectorButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent contactPickerIntent = new Intent(Intent.ACTION_PICK, Phone.CONTENT_URI);
+                    startActivityForResult(contactPickerIntent, CONTACT_PICKER_RESULT);
+                }
+            });
+        }
         return builder.create();
     }
 
@@ -76,10 +95,6 @@ public class NewPardonDialogFragment extends DialogFragment {
 
     protected int getNewPardonDialogPositiveButtonTextResId() {
         return R.string.sendPardonButtonText;
-    }
-
-    protected void onNewPardonClick(String phoneNumber, String displayName, int quantity, String reason) {
-        getMainActivity().sendPardons(phoneNumber, displayName, quantity, reason);
     }
 
     @Override
@@ -101,11 +116,16 @@ public class NewPardonDialogFragment extends DialogFragment {
                             hasText(pardonQuantityText) &&
                             Integer.parseInt(pardonQuantityText.getText().toString()) > 0) {
                         dismiss();
-                        onNewPardonClick(
-                                pardonTargetPhoneNumber,
-                                pardonTargetDisplayName.getText().toString(),
-                                Integer.parseInt(pardonQuantityText.getText().toString()),
-                                pardonReasonText.getText().toString());
+                        if (accusation == null) {
+                            getMainActivity().sendPardons(
+                                    pardonTargetPhoneNumber,
+                                    pardonTargetDisplayName.getText().toString(),
+                                    Integer.parseInt(pardonQuantityText.getText().toString()),
+                                    pardonReasonText.getText().toString());
+                        } else {
+                            getMainActivity().respondToAccusation(accusation,
+                                    Integer.parseInt(pardonQuantityText.getText().toString()));
+                        }
                     } else {
                         // display message asking user to provide target and reason
                         Utils.simpleErrorDialog(getActivity(),

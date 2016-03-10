@@ -1,11 +1,12 @@
 package com.sortedunderbelly.pardons;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
  * Created by maxr on 2/26/16.
  */
-public class Accusation {
+public class Accusation implements Serializable {
     private final String id;
     private final String accuser;
     private final String accuserDisplay;

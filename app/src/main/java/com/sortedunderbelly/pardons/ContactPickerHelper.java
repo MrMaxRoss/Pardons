@@ -16,7 +16,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 public class ContactPickerHelper {
 
     public static String handleContactResults(FragmentActivity activity, Intent data,
-                                            EditText displayNameEditText) {
+                                              EditText displayNameEditText) {
         // handle contact results
         Cursor cursor = null;
         String phoneNumber = null;

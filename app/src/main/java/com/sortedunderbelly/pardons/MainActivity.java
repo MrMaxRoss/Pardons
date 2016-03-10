@@ -373,9 +373,12 @@ public class MainActivity extends FragmentActivity implements PardonsUIListener,
                 SentPardonsFragment.class);
     }
 
-    public void respondToAccusation(Accusation accusation, Pardons pardons) {
+    public void respondToAccusation(Accusation accusation, int quantity) {
+        Pardons pardons = new Pardons(mGoogleSignInAccount.getEmail(), mGoogleSignInAccount.getDisplayName(),
+                accusation.getAccuser(), accusation.getAccuserDisplay(), new Date(), quantity,
+                accusation.getReason());
         storage.respondToAccusationAgainstMe(accusation, pardons, this);
-        Toast.makeText(getApplicationContext(), R.string.acceptedAccusationText, Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), R.string.respondedToAccusationText, Toast.LENGTH_SHORT).show();
     }
 
     public void sendPardons(String recipient, String recipientDisplayName, int quantity, String reason) {

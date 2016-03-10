@@ -45,7 +45,7 @@
     <string name="sent_pardons_attribution_format">%1$d %2$s for %3$s</string>
     <string name="accusation_against_me_attribution_format">%1$s has accused you.</string>
     <string name="accusation_by_me_attribution_format">You accused %1$s.</string>
-    <string name="acceptedAccusationText">Responded To Accusation!</string>
+    <string name="respondedToAccusationText">Responded To Accusation!</string>
     <string name="i_accuse">I Accuse</string>
     <string name="login_with_google">Sign In With Google</string>
     <string name="action_logout">Sign Out</string>
