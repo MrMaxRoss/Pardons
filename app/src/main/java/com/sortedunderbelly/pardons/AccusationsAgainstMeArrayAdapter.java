@@ -26,7 +26,7 @@ public class AccusationsAgainstMeArrayAdapter extends BaseArrayAdapter<Accusatio
 
     @Override
     protected String getAttribution(Accusation accusation) {
-        return String.format(getContext().getString(R.string.accusation_against_me_attribution_format),
+        return String.format(getContext().getString(R.string.accuser_format),
                 accusation.getAccuserDisplay());
     }
 }

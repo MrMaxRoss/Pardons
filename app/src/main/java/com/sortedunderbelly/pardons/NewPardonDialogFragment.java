@@ -27,14 +27,10 @@ public class NewPardonDialogFragment extends DialogFragment {
 
     private static final int CONTACT_PICKER_RESULT = 1001;
 
-    public static final String ACCUSATION = "accusation";
-
     String pardonTargetPhoneNumber;
     EditText pardonTargetDisplayName;
     EditText pardonQuantityText;
     EditText pardonReasonText;
-    @Nullable
-    Accusation accusation;
 
     @NonNull
     @Override
@@ -64,27 +60,13 @@ public class NewPardonDialogFragment extends DialogFragment {
                     }
                 });
 
-        accusation = (Accusation) getArguments().getSerializable(NewPardonDialogFragment.ACCUSATION);
-        if (accusation != null) {
-            pardonTargetDisplayName.setText(accusation.getAccuser());
-            // can't edit the target display name if it was provided
-            pardonTargetDisplayName.setEnabled(false);
-            pardonTargetPhoneNumber = "blar!";
-            pardonReasonText.setText(accusation.getReason());
-            // can't edit the reason if an accusation was provided
-            pardonReasonText.setEnabled(false);
-
-            // hide the contact picker button if an accusation was provided
-            contactSelectorButton.setVisibility(View.GONE);
-        } else {
-            contactSelectorButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent contactPickerIntent = new Intent(Intent.ACTION_PICK, Phone.CONTENT_URI);
-                    startActivityForResult(contactPickerIntent, CONTACT_PICKER_RESULT);
-                }
-            });
-        }
+        contactSelectorButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent contactPickerIntent = new Intent(Intent.ACTION_PICK, Phone.CONTENT_URI);
+                startActivityForResult(contactPickerIntent, CONTACT_PICKER_RESULT);
+            }
+        });
         return builder.create();
     }
 
@@ -107,16 +89,11 @@ public class NewPardonDialogFragment extends DialogFragment {
                             hasText(pardonQuantityText) &&
                             Integer.parseInt(pardonQuantityText.getText().toString()) > 0) {
                         dismiss();
-                        if (accusation == null) {
-                            getMainActivity().sendPardons(
-                                    pardonTargetPhoneNumber,
-                                    pardonTargetDisplayName.getText().toString(),
-                                    Integer.parseInt(pardonQuantityText.getText().toString()),
-                                    pardonReasonText.getText().toString());
-                        } else {
-                            getMainActivity().respondToAccusation(accusation,
-                                    Integer.parseInt(pardonQuantityText.getText().toString()));
-                        }
+                        getMainActivity().sendPardons(
+                                pardonTargetPhoneNumber,
+                                pardonTargetDisplayName.getText().toString(),
+                                Integer.parseInt(pardonQuantityText.getText().toString()),
+                                pardonReasonText.getText().toString());
                     } else {
                         // display message asking user to provide target, reason, and quantity
                         Utils.simpleErrorDialog(getActivity(),

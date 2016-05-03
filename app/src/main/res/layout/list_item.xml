@@ -1,22 +1,21 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:orientation="vertical"
     android:paddingLeft="2dp"
     android:paddingRight="2dp">
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/pardonListItemRow1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
         android:orientation="horizontal">
 
         <TextView
             android:id="@+id/pardonListItemSource"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:text="5 pardons accuser Max"
-            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="Daphne"
+            android:textAppearance="?android:attr/textAppearanceSmall"
             android:textColor="@android:color/black"
             android:textStyle="bold" />
 
@@ -27,17 +26,15 @@
             android:gravity="end"
             android:text="Aug 14"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="@android:color/black" />
+            android:textColor="@android:color/holo_blue_dark" />
     </LinearLayout>
-
 
     <TextView
         android:id="@+id/pardonListItemReason"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/pardonListItemRow1"
-        android:text="Text that is simply too long accused fit on a single row"
+        android:layout_height="match_parent"
+        android:text="Text that is truly and genuinely too long accused fit on a single row."
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:textColor="@android:color/black" />
 
-</RelativeLayout>
+</LinearLayout>

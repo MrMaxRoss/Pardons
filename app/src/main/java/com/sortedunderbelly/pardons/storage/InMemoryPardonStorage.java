@@ -21,14 +21,12 @@ public class InMemoryPardonStorage implements PardonStorage {
 
     private static final AtomicInteger nextId = new AtomicInteger(1);
 
-    private final PardonsUIListenerProvider pardonsUIListenerProvider;
     private final LinkedList<Pardons> receivedPardons = Lists.newLinkedList();
     private final LinkedList<Pardons> sentPardons = Lists.newLinkedList();
     private final LinkedList<Accusation> myAccusations = Lists.newLinkedList();
     private final LinkedList<Accusation> accusationsAgainstMe = Lists.newLinkedList();
 
-    public InMemoryPardonStorage(PardonsUIListenerProvider pardonsUIListenerProvider) {
-        this.pardonsUIListenerProvider = pardonsUIListenerProvider;
+    public InMemoryPardonStorage() {
         // Seed the database.
         // Most recent comes first.
         sentPardons.add(newPardon(2015, Calendar.JUNE, 19,
@@ -40,7 +38,7 @@ public class InMemoryPardonStorage implements PardonStorage {
                 5, "poor laundry choices"));
 
         accusationsAgainstMe.add(newAccusation(2015, Calendar.AUGUST, 19,
-                "max@example.com", "Max Ross", "violet@example.com", "Violet Ross",
+                "violet@example.com", "Violet Ross", "max@example.com", "Max Ross",
                 "stepped on Molly"));
 
         receivedPardons.add(newPardon(2014, Calendar.APRIL, 1,
@@ -67,12 +65,12 @@ public class InMemoryPardonStorage implements PardonStorage {
                 quantity, reason);
     }
 
-    private Accusation newAccusation(int year, int month, int dayOfMonth, String from,
-                             String fromDisplayName, String to, String toDisplayName,
+    private Accusation newAccusation(int year, int month, int dayOfMonth, String accuser,
+                             String accuserDisplayName, String accused, String accusedDisplayName,
                              String reason) {
         Calendar cal = Calendar.getInstance();
         cal.set(year, month, dayOfMonth);
-        return new Accusation(getNextId(), from, fromDisplayName, to, toDisplayName, cal.getTime(),
+        return new Accusation(getNextId(), accuser, accuserDisplayName, accused, accusedDisplayName, cal.getTime(),
                 reason);
     }
 
@@ -121,7 +119,7 @@ public class InMemoryPardonStorage implements PardonStorage {
 
     @Override
     public void respondToAccusationAgainstMe(Accusation accusation, Pardons derivedPardons, PardonsUIListener listener) {
-        accusationsAgainstMe.remove(derivedPardons);
+        accusationsAgainstMe.remove(accusation);
         sentPardons.add(derivedPardons);
         listener.onRespondToAccusationAgainstMeComplete(derivedPardons);
     }
