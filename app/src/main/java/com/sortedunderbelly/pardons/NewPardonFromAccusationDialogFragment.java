@@ -70,7 +70,7 @@ public class NewPardonFromAccusationDialogFragment extends DialogFragment {
                 public void onClick(View v) {
                     // create if all fields are populated
                     // TODO(max.ross) Make the display name field only editable via the
-                    // contact chooser so we are guaranteed to get the phone number
+                    // contact chooser so we are guaranteed to get the email
                     // behind the scenes.
                     if (hasText(pardonQuantityText) &&
                         Integer.parseInt(pardonQuantityText.getText().toString()) > 0) {

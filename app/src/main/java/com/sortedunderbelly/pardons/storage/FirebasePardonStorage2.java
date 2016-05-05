@@ -8,12 +8,12 @@ import com.firebase.client.ChildEventListener;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
+import com.firebase.client.Query;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.sortedunderbelly.pardons.Accusation;
 import com.sortedunderbelly.pardons.Pardons;
-import com.sortedunderbelly.pardons.PardonsUIListener;
 import com.sortedunderbelly.pardons.PardonsUIListenerProvider;
 import com.sortedunderbelly.pardons.R;
 
@@ -26,18 +26,17 @@ import java.util.Map;
 /**
  * Created by max.ross on 8/13/15.
  */
-public class FirebasePardonStorage implements PardonStorage {
+public class FirebasePardonStorage2 implements PardonStorage {
     private static final String TAG = "FirebasePardonStorage";
 
-    private static final String USER_DATA_PATH = "users";
-    private static final String ACCUSATIONS_BY_ME = "accusations_by_me";
-    private static final String ACCUSATIONS_AGAINST_ME = "accusations_against_me";
-    private static final String SENT = "sent";
-    private static final String RECEIVED = "received";
+    private static final String ACCUSATIONS = "accusations";
+    private static final String PARDONS = "pardons";
 
     private static final String EMAIL_TO_USER_ID = "email_to_user_id";
 
+    private GoogleSignInAccount googleSignInAccount;
     private String userId;
+    private String userEmailAddress;
     private final List<BaseChildEventListener> listeners = Lists.newArrayList();
 
     private final Firebase firebaseRef;
@@ -55,7 +54,7 @@ public class FirebasePardonStorage implements PardonStorage {
 
     private Map<String, String> emailToUserIdMap = Maps.newHashMap();
 
-    public FirebasePardonStorage(Context context, PardonsUIListenerProvider uiListenerProvider, boolean useAuth) {
+    public FirebasePardonStorage2(Context context, PardonsUIListenerProvider uiListenerProvider, boolean useAuth) {
         this.uiListenerProvider = uiListenerProvider;
         this.useAuth = useAuth;
         Firebase.setAndroidContext(context);
@@ -73,10 +72,11 @@ public class FirebasePardonStorage implements PardonStorage {
 
     @Override
     public void start(final GoogleSignInAccount account) {
+        googleSignInAccount = account;
         mAuthStateListener = new Firebase.AuthStateListener() {
             @Override
             public void onAuthStateChanged(AuthData authData) {
-                FirebasePardonStorage.this.onAuthStateChanged(authData);
+                FirebasePardonStorage2.this.onAuthStateChanged(authData);
             }
         };
         if (useAuth) {
@@ -93,6 +93,7 @@ public class FirebasePardonStorage implements PardonStorage {
     @Override
     public void signOut() {
         userId = null;
+        userEmailAddress = null;
         clearInMemoryData();
         firebaseRef.unauth();
     }
@@ -109,6 +110,14 @@ public class FirebasePardonStorage implements PardonStorage {
     @Override
     public void authWithOAuthToken(String provider, StorageSignInResult result) {
         firebaseRef.authWithOAuthToken(provider, result.getToken(), new AuthResultHandler(result));
+    }
+
+    public Firebase getAccusationsRef() {
+        return firebaseRef.child(ACCUSATIONS);
+    }
+
+    public Firebase getPardonsRef() {
+        return firebaseRef.child(PARDONS);
     }
 
     /**
@@ -135,11 +144,13 @@ public class FirebasePardonStorage implements PardonStorage {
     private void onAuthStateChanged(AuthData authData) {
         if (authData != null) {
             userId = authData.getUid();
+            userEmailAddress = googleSignInAccount.getEmail();
             registerAuthenticatedUser();
             populateEmailToUserIdMap();
             attachPardonListeners();
         } else {
             userId = null;
+            userEmailAddress = null;
             clearInMemoryData();
             for (BaseChildEventListener listener : listeners) {
                 listener.remove();
@@ -149,14 +160,6 @@ public class FirebasePardonStorage implements PardonStorage {
     }
 
     private void registerAuthenticatedUser() {
-    }
-
-    private Firebase getRefForAuthenticatedUser() {
-        return getRefForUser(userId);
-    }
-
-    private Firebase getRefForUser(String otherUser) {
-        return firebaseRef.child(String.format("%s/%s", USER_DATA_PATH, otherUser));
     }
 
     static Pardons toPardons(String id, Map<String, Object> pardonData) {
@@ -182,16 +185,13 @@ public class FirebasePardonStorage implements PardonStorage {
                 (String) accusationData.get("reason"));
     }
 
-    private void addAccusation(Firebase accuserRef, Firebase accusedRef, Accusation accusation) {
-        Firebase accuserAccusationRef;
-        Firebase accusedAccusationRef;
+    private void addAccusation(Accusation accusation) {
+        Firebase accusationRef;
         if (accusation.hasId()) {
-            accuserAccusationRef = accuserRef.child(accusation.getId());
-            accusedAccusationRef = accusedRef.child(accusation.getId());
+            accusationRef = getAccusationsRef().child(accusation.getId());
 
         } else {
-            accuserAccusationRef = accuserRef.push();
-            accusedAccusationRef = accusedRef.push();
+            accusationRef = getAccusationsRef().push();
         }
 
         Map<String, Object> accusationData = Maps.newHashMap();
@@ -202,20 +202,15 @@ public class FirebasePardonStorage implements PardonStorage {
         accusationData.put("date", accusation.getDate().getTime());
         accusationData.put("reason", accusation.getReason());
 
-        // no true multi-row transactions so if one of these succeeds and the other fails...on well?
-        accuserAccusationRef.setValue(accusationData);
-        accusedAccusationRef.setValue(accusationData);
+        accusationRef.setValue(accusationData);
     }
 
-    private void addPardons(Firebase senderRef, Firebase receiverRef, Pardons pardons) {
-        Firebase senderPardonsRef;
-        Firebase receiverPardonsRef;
+    private void addPardons(Pardons pardons) {
+        Firebase pardonsRef;
         if (pardons.hasId()) {
-            senderPardonsRef = senderRef.child(pardons.getId());
-            receiverPardonsRef = receiverRef.child(pardons.getId());
+            pardonsRef = getPardonsRef().child(pardons.getId());
         } else {
-            senderPardonsRef = senderRef.push();
-            receiverPardonsRef = receiverRef.push();
+            pardonsRef = getPardonsRef().push();
         }
         Map<String, Object> pardonData = Maps.newHashMap();
         pardonData.put("from", pardons.getFrom());
@@ -226,42 +221,21 @@ public class FirebasePardonStorage implements PardonStorage {
         pardonData.put("quantity", pardons.getQuantity());
         pardonData.put("reason", pardons.getReason());
 
-        // no true multi-row transactions so if one of these succeeds and the other fails...on well?
-        senderPardonsRef.setValue(pardonData);
-        receiverPardonsRef.setValue(pardonData);
+        pardonsRef.setValue(pardonData);
     }
 
-    private void removeAccusation(Firebase accuserRef, Firebase accusedRef, Accusation accusation) {
-        accuserRef.child(accusation.getId()).removeValue();
-        accusedRef.child(accusation.getId()).removeValue();
-    }
-
-    private Firebase getSentRefForAuthenticatedUser() {
-        return getRefForAuthenticatedUser().child(SENT);
-    }
-
-    private Firebase getReceivedRefForAuthenticatedUser() {
-        return getRefForAuthenticatedUser().child(RECEIVED);
-    }
-
-    private Firebase getSentRefForOtherUser(String otherUser) {
-        return getRefForUser(otherUser).child(SENT);
-    }
-
-    private Firebase getReceivedRefForOtherUser(String otherUser) {
-        return getRefForUser(otherUser).child(RECEIVED);
+    private void removeAccusation(Accusation accusation) {
+        getAccusationsRef().child(accusation.getId()).removeValue();
     }
 
     @Override
     public void sendPardons(Pardons pardons) {
-        addPardons(
-                getSentRefForAuthenticatedUser(),
-                getReceivedRefForOtherUser(pardons.getTo()),
-                pardons);
+        addPardons(pardons);
     }
 
     @Override
     public List<Pardons> getSentPardons() {
+
         return Collections.unmodifiableList(sentPardons);
     }
 
@@ -275,27 +249,9 @@ public class FirebasePardonStorage implements PardonStorage {
         return Collections.unmodifiableList(myAccusations);
     }
 
-    private Firebase getMyAccusationsRefForAuthenticatedUser() {
-        return getRefForAuthenticatedUser().child(ACCUSATIONS_BY_ME);
-    }
-
-    private Firebase getAccusationsAgainstMeRefForAuthenticatedUser() {
-        return getRefForAuthenticatedUser().child(ACCUSATIONS_AGAINST_ME);
-    }
-
-    private Firebase getMyAccusationsRefForOtherUser(String otherUser) {
-        return getRefForUser(otherUser).child(ACCUSATIONS_BY_ME);
-    }
-
-    private Firebase getAccusationsAgainstMeRefForOtherUser(String otherUser) {
-        return getRefForUser(otherUser).child(ACCUSATIONS_AGAINST_ME);
-    }
-
     @Override
     public void makeAccusation(Accusation accusation) {
-        String accusedUserId = getOrCreateUserId(accusation.getAccused());
-        addAccusation(getMyAccusationsRefForAuthenticatedUser(),
-                getAccusationsAgainstMeRefForOtherUser(accusedUserId), accusation);
+        addAccusation(accusation);
     }
 
     private void populateEmailToUserIdMap() {
@@ -345,9 +301,7 @@ public class FirebasePardonStorage implements PardonStorage {
 
     @Override
     public void retractAccusation(Accusation accusation) {
-        removeAccusation(getMyAccusationsRefForAuthenticatedUser(),
-                getAccusationsAgainstMeRefForOtherUser(accusation.getAccused()),
-                accusation);
+        removeAccusation(accusation);
     }
 
     @Override
@@ -357,24 +311,18 @@ public class FirebasePardonStorage implements PardonStorage {
 
     @Override
     public void respondToAccusationAgainstMe(Accusation accusation, Pardons derivedPardons) {
-        removeAccusation(
-                getAccusationsAgainstMeRefForAuthenticatedUser(),
-                getMyAccusationsRefForOtherUser(accusation.getAccuser()),
-                accusation);
-        addPardons(
-                getSentRefForAuthenticatedUser(),
-                getReceivedRefForOtherUser(derivedPardons.getFrom()),
-                derivedPardons);
+        removeAccusation(accusation);
+        addPardons(derivedPardons);
     }
 
     abstract class BaseChildEventListener<T> implements ChildEventListener {
-        private final Firebase ref;
+        private final Query query;
         private final LinkedList<T> list;
 
-        BaseChildEventListener(Firebase ref, LinkedList<T> list) {
-            this.ref = ref;
+        BaseChildEventListener(Query query, LinkedList<T> list) {
+            this.query = query;
             this.list = list;
-            ref.addChildEventListener(this);
+            query.addChildEventListener(this);
         }
 
         protected abstract void doAddCompletionCallback(T obj);
@@ -410,15 +358,15 @@ public class FirebasePardonStorage implements PardonStorage {
         }
 
         public void remove() {
-            ref.removeEventListener(this);
+            query.removeEventListener(this);
         }
 
         abstract T toObject(String id, Map<String, Object> data);
     }
 
     abstract class PardonsChildEventListener extends BaseChildEventListener<Pardons> {
-        PardonsChildEventListener(Firebase ref, LinkedList<Pardons> list) {
-            super(ref, list);
+        PardonsChildEventListener(Query query, LinkedList<Pardons> list) {
+            super(query, list);
         }
 
         @Override
@@ -428,8 +376,8 @@ public class FirebasePardonStorage implements PardonStorage {
     }
 
     abstract class AccusationChildEventListener extends BaseChildEventListener<Accusation> {
-        AccusationChildEventListener(Firebase ref, LinkedList<Accusation> list) {
-            super(ref, list);
+        AccusationChildEventListener(Query query, LinkedList<Accusation> list) {
+            super(query, list);
         }
 
         @Override
@@ -439,7 +387,7 @@ public class FirebasePardonStorage implements PardonStorage {
     }
 
     private void attachPardonListeners() {
-        listeners.add(new PardonsChildEventListener(getSentRefForAuthenticatedUser(), sentPardons) {
+        listeners.add(new PardonsChildEventListener(getPardonsFromAuthenticatedUser(), sentPardons) {
             @Override
             protected void doAddCompletionCallback(Pardons pardons) {
                 uiListenerProvider.get().onSentPardonsComplete(pardons);
@@ -450,7 +398,7 @@ public class FirebasePardonStorage implements PardonStorage {
                 // no way to remove a pardon once sent
             }
         });
-        listeners.add(new PardonsChildEventListener(getReceivedRefForAuthenticatedUser(), receivedPardons) {
+        listeners.add(new PardonsChildEventListener(getPardonsForAuthenticatedUser(), receivedPardons) {
             @Override
             protected void doAddCompletionCallback(Pardons pardons) {
                 uiListenerProvider.get().onReceivedPardonsComplete(pardons);
@@ -462,7 +410,7 @@ public class FirebasePardonStorage implements PardonStorage {
             }
         });
 
-        listeners.add(new AccusationChildEventListener(getAccusationsAgainstMeRefForAuthenticatedUser(), accusationsAgainstMe) {
+        listeners.add(new AccusationChildEventListener(getAccusationsAgainstAuthentictedUser(), accusationsAgainstMe) {
             @Override
             protected void doAddCompletionCallback(Accusation accusation) {
                 uiListenerProvider.get().onAccusationAgainstMeChangeComplete();
@@ -474,7 +422,7 @@ public class FirebasePardonStorage implements PardonStorage {
             }
         });
 
-        listeners.add(new AccusationChildEventListener(getMyAccusationsRefForAuthenticatedUser(), myAccusations) {
+        listeners.add(new AccusationChildEventListener(getAccusationsFromAuthenticatedUser(), myAccusations) {
             @Override
             protected void doAddCompletionCallback(Accusation accusation) {
                 uiListenerProvider.get().onChangeMyAccusations();
@@ -485,6 +433,22 @@ public class FirebasePardonStorage implements PardonStorage {
                 uiListenerProvider.get().onChangeMyAccusations();
             }
         });
+    }
+
+    private Query getAccusationsFromAuthenticatedUser() {
+        return getAccusationsRef().orderByChild("accuser").equalTo(userEmailAddress);
+    }
+
+    private Query getAccusationsAgainstAuthentictedUser() {
+        return getAccusationsRef().orderByChild("accused").equalTo(userEmailAddress);
+    }
+
+    private Query getPardonsForAuthenticatedUser() {
+        return getPardonsRef().orderByChild("to").equalTo(userEmailAddress);
+    }
+
+    private Query getPardonsFromAuthenticatedUser() {
+        return getPardonsRef().orderByChild("from").equalTo(userEmailAddress);
     }
 
     @SuppressWarnings("unchecked")

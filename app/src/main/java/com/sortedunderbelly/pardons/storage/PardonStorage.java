@@ -22,10 +22,6 @@ public interface PardonStorage {
             this.token = token;
         }
 
-        public GoogleSignInAccount getAccount() {
-            return account;
-        }
-
         public String getToken() {
             return token;
         }
@@ -42,9 +38,8 @@ public interface PardonStorage {
     List<Accusation> getMyAccusations();
     List<Accusation> getAccusationsAgainstMe();
 
-    void receivePardons(Pardons pardons);
-    void sendPardons(Pardons pardons, PardonsUIListener listener);
-    void makeAccusation(Accusation accusation, PardonsUIListener listener);
-    void retractAccusation(Accusation accusation, PardonsUIListener listener);
-    void respondToAccusationAgainstMe(Accusation accusation, Pardons derivedPardons, PardonsUIListener listener);
+    void sendPardons(Pardons pardons);
+    void makeAccusation(Accusation accusation);
+    void retractAccusation(Accusation accusation);
+    void respondToAccusationAgainstMe(Accusation accusation, Pardons derivedPardons);
 }

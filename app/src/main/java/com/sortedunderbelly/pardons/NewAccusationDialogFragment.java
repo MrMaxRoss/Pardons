@@ -6,7 +6,7 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.provider.ContactsContract.CommonDataKinds.Phone;
+import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
@@ -26,7 +26,7 @@ public class NewAccusationDialogFragment extends DialogFragment {
 
     private static final int CONTACT_PICKER_RESULT = 1001;
 
-    String accusationTargetPhoneNumber;
+    String accusationTargetEmail;
     EditText accusationTargetDisplayName;
     EditText accusationReasonText;
 
@@ -37,7 +37,7 @@ public class NewAccusationDialogFragment extends DialogFragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.make_accusation, null);
-        accusationTargetPhoneNumber = null;
+        accusationTargetEmail = null;
         accusationTargetDisplayName = (EditText) view.findViewById(R.id.accusation_target_display_name);
         accusationTargetDisplayName.setHint(getPardonTargetDisplayNameHintResId());
         accusationReasonText = (EditText) view.findViewById(R.id.accusationReasonText);
@@ -46,7 +46,7 @@ public class NewAccusationDialogFragment extends DialogFragment {
         contactSelectorButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent contactPickerIntent = new Intent(Intent.ACTION_PICK, Phone.CONTENT_URI);
+                Intent contactPickerIntent = new Intent(Intent.ACTION_PICK, Email.CONTENT_URI);
                 startActivityForResult(contactPickerIntent, CONTACT_PICKER_RESULT);
             }
         });
@@ -79,14 +79,14 @@ public class NewAccusationDialogFragment extends DialogFragment {
                 public void onClick(View v) {
                     // create if all fields are populated
                     // TODO(max.ross) Make the display name field only editable via the
-                    // contact chooser so we are guaranteed to get the phone number
+                    // contact chooser so we are guaranteed to get the email
                     // behind the scenes.
-                    if (!isNullOrEmpty(accusationTargetPhoneNumber) &&
+                    if (!isNullOrEmpty(accusationTargetEmail) &&
                             hasText(accusationTargetDisplayName) &&
                             hasText(accusationReasonText)) {
                         dismiss();
                         onNewAccusationClick(
-                                accusationTargetPhoneNumber,
+                                accusationTargetEmail,
                                 accusationTargetDisplayName.getText().toString(),
                                 accusationReasonText.getText().toString());
                     } else {
@@ -101,8 +101,8 @@ public class NewAccusationDialogFragment extends DialogFragment {
     }
 
     protected void onNewAccusationClick(
-            String phoneNumber, String displayName, String reason) {
-        getMainActivity().makeAccusation(phoneNumber, displayName, reason);
+            String emailAddress, String displayName, String reason) {
+        getMainActivity().makeAccusation(emailAddress, displayName, reason);
     }
 
     @Override
@@ -111,7 +111,7 @@ public class NewAccusationDialogFragment extends DialogFragment {
         if (resultCode == Activity.RESULT_OK) {
             switch (requestCode) {
                 case CONTACT_PICKER_RESULT:
-                    accusationTargetPhoneNumber =
+                    accusationTargetEmail =
                             ContactPickerHelper.handleContactResults(getActivity(), data, accusationTargetDisplayName);
                         break;
             }

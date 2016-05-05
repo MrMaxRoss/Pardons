@@ -37,7 +37,7 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.common.api.Status;
 import com.google.common.collect.Sets;
-import com.sortedunderbelly.pardons.storage.FirebasePardonStorage;
+import com.sortedunderbelly.pardons.storage.FirebasePardonStorage2;
 import com.sortedunderbelly.pardons.storage.PardonStorage;
 import com.sortedunderbelly.pardons.storage.PardonStorage.StorageSignInResult;
 
@@ -110,7 +110,8 @@ public class MainActivity extends FragmentActivity implements PardonsUIListener,
         if (storage == null) {
             // this seems like a bad idea, but how do I keep from reiniitializing Firebase
             // every time a new activity is created?
-            storage = new FirebasePardonStorage(this, pardonsUIListenerProvider, USE_AUTH);
+//            storage = new InMemoryPardonStorage();
+            storage = new FirebasePardonStorage2(this, pardonsUIListenerProvider, USE_AUTH);
         }
 
         receivedPardonsText = (TextView) findViewById(R.id.receivedPardonsValTextView);
@@ -377,14 +378,14 @@ public class MainActivity extends FragmentActivity implements PardonsUIListener,
         Pardons pardons = new Pardons(mGoogleSignInAccount.getEmail(), mGoogleSignInAccount.getDisplayName(),
                 accusation.getAccuser(), accusation.getAccuserDisplay(), new Date(), quantity,
                 accusation.getReason());
-        storage.respondToAccusationAgainstMe(accusation, pardons, this);
+        storage.respondToAccusationAgainstMe(accusation, pardons);
         Toast.makeText(getApplicationContext(), R.string.respondedToAccusationText, Toast.LENGTH_SHORT).show();
     }
 
     public void sendPardons(String recipient, String recipientDisplayName, int quantity, String reason) {
         Pardons pardons = new Pardons(mGoogleSignInAccount.getEmail(), mGoogleSignInAccount.getDisplayName(),
                 recipient, recipientDisplayName, new Date(), quantity, reason);
-        storage.sendPardons(pardons, this);
+        storage.sendPardons(pardons);
         Toast.makeText(getApplicationContext(), R.string.pardonsSentText, Toast.LENGTH_SHORT).show();
     }
 
@@ -396,8 +397,7 @@ public class MainActivity extends FragmentActivity implements PardonsUIListener,
     public void makeAccusation(String accused, String accusedDisplayName, String reason) {
         Accusation accusation = new Accusation(mGoogleSignInAccount.getEmail(),
                 mGoogleSignInAccount.getDisplayName(), accused, accusedDisplayName, new Date(), reason);
-        // If approved, these pardons will come from your friend.
-        storage.makeAccusation(accusation, this);
+        storage.makeAccusation(accusation);
         Toast.makeText(getApplicationContext(), R.string.accusationMadeText, Toast.LENGTH_SHORT).show();
     }
 
@@ -407,7 +407,7 @@ public class MainActivity extends FragmentActivity implements PardonsUIListener,
     }
 
     public void retractAccusation(Accusation accusation) {
-        storage.retractAccusation(accusation, this);
+        storage.retractAccusation(accusation);
         Toast.makeText(getApplicationContext(), R.string.accusationRetractedText, Toast.LENGTH_SHORT).show();
     }
 

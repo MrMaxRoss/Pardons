@@ -26,7 +26,12 @@ public class InMemoryPardonStorage implements PardonStorage {
     private final LinkedList<Accusation> myAccusations = Lists.newLinkedList();
     private final LinkedList<Accusation> accusationsAgainstMe = Lists.newLinkedList();
 
-    public InMemoryPardonStorage() {
+    private final PardonsUIListenerProvider uiListenerProvider;
+
+
+    public InMemoryPardonStorage(PardonsUIListenerProvider uiListenerProvider) {
+        this.uiListenerProvider = uiListenerProvider;
+
         // Seed the database.
         // Most recent comes first.
         sentPardons.add(newPardon(2015, Calendar.JUNE, 19,
@@ -80,19 +85,14 @@ public class InMemoryPardonStorage implements PardonStorage {
     }
 
     @Override
-    public void receivePardons(Pardons pardons) {
-        addToList(pardonsWithId(pardons), receivedPardons);
-    }
-
-    @Override
     public List<Pardons> getSentPardons() {
         return Collections.unmodifiableList(sentPardons);
     }
 
     @Override
-    public void sendPardons(Pardons pardons, PardonsUIListener listener) {
+    public void sendPardons(Pardons pardons) {
         addToList(pardonsWithId(pardons), sentPardons);
-        listener.onSentPardonsComplete(pardons);
+        uiListenerProvider.get().onSentPardonsComplete(pardons);
     }
 
     @Override
@@ -101,15 +101,15 @@ public class InMemoryPardonStorage implements PardonStorage {
     }
 
     @Override
-    public void makeAccusation(Accusation accusation, PardonsUIListener listener) {
+    public void makeAccusation(Accusation accusation) {
         addToList(accusationWithId(accusation), myAccusations);
-        listener.onMakeAccusationComplete(accusation);
+        uiListenerProvider.get().onMakeAccusationComplete(accusation);
     }
 
     @Override
-    public void retractAccusation(Accusation accusation, PardonsUIListener listener) {
+    public void retractAccusation(Accusation accusation) {
         myAccusations.remove(accusation);
-        listener.onRetractAccusationComplete(accusation);
+        uiListenerProvider.get().onRetractAccusationComplete(accusation);
     }
 
     @Override
@@ -118,10 +118,10 @@ public class InMemoryPardonStorage implements PardonStorage {
     }
 
     @Override
-    public void respondToAccusationAgainstMe(Accusation accusation, Pardons derivedPardons, PardonsUIListener listener) {
+    public void respondToAccusationAgainstMe(Accusation accusation, Pardons derivedPardons) {
         accusationsAgainstMe.remove(accusation);
         sentPardons.add(derivedPardons);
-        listener.onRespondToAccusationAgainstMeComplete(derivedPardons);
+        uiListenerProvider.get().onRespondToAccusationAgainstMeComplete(derivedPardons);
     }
 
     private static void addToList(Pardons pardons, LinkedList<Pardons> list) {

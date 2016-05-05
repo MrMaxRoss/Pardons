@@ -6,15 +6,16 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.provider.ContactsContract.CommonDataKinds.Phone;
+import android.provider.ContactsContract;
+import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import static android.provider.ContactsContract.Contacts.CONTENT_URI;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 
@@ -27,7 +28,7 @@ public class NewPardonDialogFragment extends DialogFragment {
 
     private static final int CONTACT_PICKER_RESULT = 1001;
 
-    String pardonTargetPhoneNumber;
+    String pardonTargetEmail;
     EditText pardonTargetDisplayName;
     EditText pardonQuantityText;
     EditText pardonReasonText;
@@ -39,7 +40,7 @@ public class NewPardonDialogFragment extends DialogFragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.create_pardon, null);
-        pardonTargetPhoneNumber = null;
+        pardonTargetEmail = null;
         pardonTargetDisplayName = (EditText) view.findViewById(R.id.pardon_target_display_name);
         pardonTargetDisplayName.setHint(R.string.send_pardon_display_name_hint);
         pardonQuantityText = (EditText) view.findViewById(R.id.pardonQuantityText);
@@ -63,7 +64,7 @@ public class NewPardonDialogFragment extends DialogFragment {
         contactSelectorButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent contactPickerIntent = new Intent(Intent.ACTION_PICK, Phone.CONTENT_URI);
+                Intent contactPickerIntent = new Intent(Intent.ACTION_PICK, CONTENT_URI);
                 startActivityForResult(contactPickerIntent, CONTACT_PICKER_RESULT);
             }
         });
@@ -81,16 +82,16 @@ public class NewPardonDialogFragment extends DialogFragment {
                 public void onClick(View v) {
                     // create if all fields are populated
                     // TODO(max.ross) Make the display name field only editable via the
-                    // contact chooser so we are guaranteed to get the phone number
+                    // contact chooser so we are guaranteed to get the email number
                     // behind the scenes.
-                    if (!isNullOrEmpty(pardonTargetPhoneNumber) &&
+                    if (!isNullOrEmpty(pardonTargetEmail) &&
                             hasText(pardonTargetDisplayName) &&
                             hasText(pardonReasonText) &&
                             hasText(pardonQuantityText) &&
                             Integer.parseInt(pardonQuantityText.getText().toString()) > 0) {
                         dismiss();
                         getMainActivity().sendPardons(
-                                pardonTargetPhoneNumber,
+                                pardonTargetEmail,
                                 pardonTargetDisplayName.getText().toString(),
                                 Integer.parseInt(pardonQuantityText.getText().toString()),
                                 pardonReasonText.getText().toString());
@@ -111,7 +112,7 @@ public class NewPardonDialogFragment extends DialogFragment {
         if (resultCode == Activity.RESULT_OK) {
             switch (requestCode) {
                 case CONTACT_PICKER_RESULT:
-                    pardonTargetPhoneNumber =
+                    pardonTargetEmail =
                             ContactPickerHelper.handleContactResults(getActivity(), data, pardonTargetDisplayName);
                     break;
             }
