@@ -33,12 +33,6 @@
     </ul>
 
     <footer>
-        <select name="singleSelect" ng-model="pardons_type">
-            <option value="sent">Sent</option>
-            <option value="received">Received</option>
-        </select>
-        <br>
-
         <input ng-model="pardon_from" type="text" id="fromInput" placeholder="From...">
         <input ng-model="pardon_to" type="text" id="toInput" placeholder="To...">
         <input ng-model="quantity" type="number" id="quantityInput" placeholder="Quantity...">
@@ -48,12 +42,6 @@
         <br>
         <br>
         <br>
-        <select name="singleSelect" ng-model="accusation_type">
-            <option value="accusations_by_me">By Me</option>
-            <option value="accusations_against_me">Against Me</option>
-        </select>
-        <br>
-
         <input ng-model="accuser" type="text" id="accuserInput" placeholder="Accuser...">
         <input ng-model="accused" type="text" id="accusedInput" placeholder="Against...">
         <input ng-model="accusation_reason" ng-keydown="addAccusation($event)" type="text"
@@ -68,7 +56,8 @@
       myApp.controller("MyController", ["$scope", "$firebaseArray",
         function($scope, $firebaseArray) {
             //CREATE A FIREBASE REFERENCE
-            var dummyuidRef = new Firebase("https://pardons.firebaseio.com/users/google%3A102837845875216819095");
+            // var dummyuidRef = new Firebase("https://pardons.firebaseio.com/users/google%3A102837845875216819095");
+            var dummyuidRef = new Firebase("https://pardons.firebaseio.com");
             $scope.pardons = [] // starts out empty
             $scope.accusations = [] // starts out empty
 
@@ -79,7 +68,7 @@
                 //LISTEN FOR RETURN KEY
                 if (e.keyCode === 13 && $scope.reason) {
 
-                  var pardonsRef = dummyuidRef.child($scope.pardons_type);
+                  var pardonsRef = dummyuidRef.child('pardons');
                   // GET MESSAGES AS AN ARRAY
                   $scope.pardons = $firebaseArray(pardonsRef);
 
@@ -107,7 +96,7 @@
 
                 //LISTEN FOR RETURN KEY
                 if (e.keyCode === 13 && $scope.accusation_reason) {
-                  var accusationsRef = dummyuidRef.child($scope.accusation_type);
+                  var accusationsRef = dummyuidRef.child('accusations');
                   // GET MESSAGES AS AN ARRAY
                   $scope.accusations = $firebaseArray(accusationsRef);
 
@@ -115,7 +104,7 @@
                   $scope.accusations.$add({
                     accuser: $scope.accuser,
                     accuser_display: $scope.accuser,
-                    accused_: $scope.accused,
+                    accused: $scope.accused,
                     accused_display: $scope.accused,
                     date: new Date().getTime(),
                     reason: $scope.accusation_reason,
