@@ -10,6 +10,7 @@
     <string name="pardonRecipientSpinnerPrompt">Select Recipient</string>
     <string name="accusationMadeText">Accusation Made!</string>
     <string name="missingPardonDataMessage">Enter recipient, quantity, and reason.</string>
+    <string name="missingAccusationDataMessage">Enter recipient and reason.</string>
     <string name="missingPardonFromAccusationDataMessage">Enter quantity.</string>
     <string name="pardonQuantityDefault">Quantity</string>
     <string name="sentPardonsText">Sent:</string>

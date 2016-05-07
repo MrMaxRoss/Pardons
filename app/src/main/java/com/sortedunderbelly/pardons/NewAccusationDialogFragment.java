@@ -6,7 +6,9 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Email;
+import android.provider.ContactsContract.Contacts;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
@@ -46,7 +48,7 @@ public class NewAccusationDialogFragment extends DialogFragment {
         contactSelectorButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent contactPickerIntent = new Intent(Intent.ACTION_PICK, Email.CONTENT_URI);
+                Intent contactPickerIntent = new Intent(Intent.ACTION_PICK, Contacts.CONTENT_URI);
                 startActivityForResult(contactPickerIntent, CONTACT_PICKER_RESULT);
             }
         });
@@ -92,7 +94,7 @@ public class NewAccusationDialogFragment extends DialogFragment {
                     } else {
                         // display message asking user to provide target and reason
                         Utils.simpleErrorDialog(getActivity(),
-                                getResources(), R.string.missingPardonDataMessage);
+                                getResources(), R.string.missingAccusationDataMessage);
                         // dialog stays open
                     }
                 }
