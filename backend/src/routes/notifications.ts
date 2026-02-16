@@ -40,3 +40,22 @@ notificationsRouter.post("/:id/read", async (req: AuthRequest, res: Response) =>
   await docRef.update({ read: true });
   res.json({ success: true });
 });
+
+// Mark all notifications for a transaction as read
+notificationsRouter.post("/read-by-transaction/:transactionId", async (req: AuthRequest, res: Response) => {
+  const db = getDb();
+  const snapshot = await db
+    .collection("notifications")
+    .where("recipientEmail", "==", req.userEmail)
+    .where("transactionId", "==", req.params.transactionId)
+    .where("read", "==", false)
+    .get();
+
+  const batch = db.batch();
+  for (const doc of snapshot.docs) {
+    batch.update(doc.ref, { read: true });
+  }
+  await batch.commit();
+
+  res.json({ success: true, cleared: snapshot.size });
+});

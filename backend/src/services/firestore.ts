@@ -1,17 +1,22 @@
-import { initializeApp, cert, getApps } from "firebase-admin/app";
+import { initializeApp, cert, applicationDefault, getApps } from "firebase-admin/app";
 import { getFirestore, Firestore } from "firebase-admin/firestore";
 
 let db: Firestore;
 
 export function initializeFirestore(): Firestore {
   if (!getApps().length) {
-    initializeApp({
-      credential: process.env.GOOGLE_APPLICATION_CREDENTIALS
-        ? cert(process.env.GOOGLE_APPLICATION_CREDENTIALS)
-        : undefined,
-    });
+    if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+      initializeApp({ credential: cert(process.env.GOOGLE_APPLICATION_CREDENTIALS) });
+    } else {
+      initializeApp({ projectId: process.env.GCLOUD_PROJECT || "pardons-local" });
+    }
   }
   db = getFirestore();
+
+  if (process.env.FIRESTORE_EMULATOR_HOST) {
+    console.log(`Using Firestore emulator at ${process.env.FIRESTORE_EMULATOR_HOST}`);
+  }
+
   return db;
 }
 

@@ -9,18 +9,26 @@ export default function NotificationBadge() {
   const navigate = useNavigate();
   const ref = useRef<HTMLDivElement>(null);
 
+  const fetchNotifications = async () => {
+    try {
+      const res = await api.get("/notifications");
+      setNotifications(res.data);
+    } catch {
+      // ignore
+    }
+  };
+
   useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const res = await api.get("/notifications");
-        setNotifications(res.data);
-      } catch {
-        // ignore
-      }
-    };
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
+
+    const onUpdate = () => fetchNotifications();
+    window.addEventListener("notifications-updated", onUpdate);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("notifications-updated", onUpdate);
+    };
   }, []);
 
   useEffect(() => {

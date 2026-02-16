@@ -8,5 +8,14 @@
         "destination": "/index.html"
       }
     ]
+  },
+  "emulators": {
+    "firestore": {
+      "port": 8181
+    },
+    "ui": {
+      "enabled": true,
+      "port": 4000
+    }
   }
 }

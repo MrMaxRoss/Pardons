@@ -1,12 +1,13 @@
 import { Request, Response, NextFunction } from "express";
 import { OAuth2Client } from "google-auth-library";
 
-const ALLOWED_EMAILS = [
-  "max.ross@gmail.com",
-  "daphne.ross@gmail.com",
-  "violet.ross@gmail.com",
-];
+const ALLOWED_EMAILS: Record<string, string> = {
+  "max.ross@gmail.com": "Max",
+  "daphne.ross@gmail.com": "Daphne",
+  "violet.ross@gmail.com": "Violet",
+};
 
+const DEV_AUTH = process.env.DEV_AUTH === "true";
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export interface AuthRequest extends Request {
@@ -27,6 +28,19 @@ export async function authMiddleware(
 
   const token = authHeader.slice(7);
 
+  // Dev mode: token is "dev:<email>"
+  if (DEV_AUTH && token.startsWith("dev:")) {
+    const email = token.slice(4);
+    if (!(email in ALLOWED_EMAILS)) {
+      res.status(403).json({ error: "Unauthorized user" });
+      return;
+    }
+    req.userEmail = email;
+    req.userName = ALLOWED_EMAILS[email];
+    next();
+    return;
+  }
+
   try {
     const ticket = await client.verifyIdToken({
       idToken: token,
@@ -38,7 +52,7 @@ export async function authMiddleware(
       return;
     }
 
-    if (!ALLOWED_EMAILS.includes(payload.email)) {
+    if (!(payload.email in ALLOWED_EMAILS)) {
       res.status(403).json({ error: "Unauthorized user" });
       return;
     }

@@ -24,6 +24,15 @@ export default function TransactionPage() {
   const [counterAmount, setCounterAmount] = useState(1);
   const [counterMessage, setCounterMessage] = useState("");
 
+  const clearNotifications = async () => {
+    try {
+      await api.post(`/notifications/read-by-transaction/${id}`);
+      window.dispatchEvent(new CustomEvent("notifications-updated"));
+    } catch {
+      // non-critical
+    }
+  };
+
   const fetchTransaction = async () => {
     try {
       const res = await api.get(`/transactions/${id}`);
@@ -37,6 +46,7 @@ export default function TransactionPage() {
 
   useEffect(() => {
     fetchTransaction();
+    clearNotifications();
   }, [id]);
 
   if (loading) {
