@@ -115,7 +115,7 @@ transactionsRouter.get("/:id", async (req: AuthRequest, res: Response) => {
 });
 
 // Helper: check if it's the user's turn
-function isUsersTurn(transaction: any, userEmail: string): boolean {
+export function isUsersTurn(transaction: any, userEmail: string): boolean {
   const events = transaction.events;
   if (!events || events.length === 0) return false;
   const lastActor = events[events.length - 1].actorEmail;

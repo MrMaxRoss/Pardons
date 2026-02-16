@@ -7,7 +7,6 @@ const ALLOWED_EMAILS: Record<string, string> = {
   "violet.ross@gmail.com": "Violet",
 };
 
-const DEV_AUTH = process.env.DEV_AUTH === "true";
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export interface AuthRequest extends Request {
@@ -29,7 +28,7 @@ export async function authMiddleware(
   const token = authHeader.slice(7);
 
   // Dev mode: token is "dev:<email>"
-  if (DEV_AUTH && token.startsWith("dev:")) {
+  if (process.env.DEV_AUTH === "true" && token.startsWith("dev:")) {
     const email = token.slice(4);
     if (!(email in ALLOWED_EMAILS)) {
       res.status(403).json({ error: "Unauthorized user" });

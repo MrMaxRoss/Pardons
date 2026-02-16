@@ -6,7 +6,7 @@ import { transactionsRouter } from "./routes/transactions";
 import { usersRouter } from "./routes/users";
 import { notificationsRouter } from "./routes/notifications";
 
-const app = express();
+export const app = express();
 const PORT = parseInt(process.env.PORT || "8080", 10);
 
 app.use(cors({
@@ -24,8 +24,10 @@ app.use("/api/transactions", transactionsRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/notifications", notificationsRouter);
 
-initializeFirestore();
+if (process.env.NODE_ENV !== "test") {
+  initializeFirestore();
 
-app.listen(PORT, () => {
-  console.log(`Pardons backend listening on port ${PORT}`);
-});
+  app.listen(PORT, () => {
+    console.log(`Pardons backend listening on port ${PORT}`);
+  });
+}
