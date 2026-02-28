@@ -193,15 +193,17 @@ transactionsRouter.post("/:id/reject", async (req: AuthRequest, res: Response) =
     return;
   }
 
+  const rejectEvent: any = {
+    action: "rejected",
+    actorEmail: req.userEmail,
+    amount: data.currentAmount,
+    timestamp: new Date(),
+  };
+  if (req.body.message) rejectEvent.message = req.body.message;
+
   await docRef.update({
     status: "rejected",
-    events: FieldValue.arrayUnion({
-      action: "rejected",
-      actorEmail: req.userEmail,
-      amount: data.currentAmount,
-      message: req.body.message || undefined,
-      timestamp: new Date(),
-    }),
+    events: FieldValue.arrayUnion(rejectEvent),
     updatedAt: FieldValue.serverTimestamp(),
   });
 
