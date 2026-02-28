@@ -1,1 +1,28 @@
 npm test --workspace=backend
+
+# Start Firestore emulator if not already running
+EMULATOR_STARTED=false
+if ! lsof -ti:8181 > /dev/null 2>&1; then
+  firebase emulators:start --only firestore &
+  EMULATOR_PID=$!
+  EMULATOR_STARTED=true
+
+  # Wait for emulator to be ready
+  for i in $(seq 1 30); do
+    if lsof -ti:8181 > /dev/null 2>&1; then
+      break
+    fi
+    sleep 1
+  done
+fi
+
+npm run test:e2e
+E2E_EXIT=$?
+
+# Stop emulator if we started it
+if [ "$EMULATOR_STARTED" = true ]; then
+  kill $EMULATOR_PID 2>/dev/null
+  wait $EMULATOR_PID 2>/dev/null
+fi
+
+exit $E2E_EXIT
