@@ -26,7 +26,7 @@ test("create an offer with correct data", async ({ maxPage }) => {
   // Verify transaction data
   await expect(page.locator("text=offer").first()).toBeVisible();
   await expect(page.locator("text=For being awesome")).toBeVisible();
-  await expect(page.locator("text=3")).toBeVisible();
+  await expect(page.getByText("3", { exact: true })).toBeVisible();
   await expect(page.getByText("To: Daphne")).toBeVisible();
   await expect(page.locator("text=pending")).toBeVisible();
 });

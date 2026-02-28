@@ -5,7 +5,10 @@ let db: Firestore;
 
 export function initializeFirestore(): Firestore {
   if (!getApps().length) {
-    if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+    if (process.env.GOOGLE_SERVICE_ACCOUNT) {
+      const serviceAccount = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
+      initializeApp({ credential: cert(serviceAccount) });
+    } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
       initializeApp({ credential: cert(process.env.GOOGLE_APPLICATION_CREDENTIALS) });
     } else {
       initializeApp({ projectId: process.env.GCLOUD_PROJECT || "pardons-local" });
