@@ -22,7 +22,12 @@ export default function FamilyMemberPicker({ value, onChange }: Props) {
     api
       .get("/users")
       .then((res) => {
-        if (res.data.length > 0) setMembers(res.data);
+        if (res.data.length > 0) {
+          // Merge API users with defaults so all family members always appear
+          const apiEmails = new Set(res.data.map((u: User) => u.email));
+          const missing = FAMILY_MEMBERS.filter((m) => !apiEmails.has(m.email));
+          setMembers([...res.data, ...missing]);
+        }
       })
       .catch(() => {});
   }, []);

@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
-import { USERS, setNumberPickerValue } from "./helpers";
+import { test as baseTest, expect as baseExpect } from "@playwright/test";
+import { USERS, setNumberPickerValue, clearFirestore, loginAs } from "./helpers";
 
 test("create an offer with correct data", async ({ maxPage }) => {
   const page = maxPage;
@@ -79,4 +80,15 @@ test("new pardon appears in home page pending tab", async ({ maxPage }) => {
 
   // Should see the transaction in pending tab
   await expect(page.locator("text=Test pardon")).toBeVisible();
+});
+
+baseTest("family member picker shows all users even when only one has logged in", async ({ page }) => {
+  await clearFirestore();
+  // Only Max logs in — Daphne and Violet have no user docs in Firestore
+  await loginAs(page, USERS.max);
+  await page.goto("/new");
+
+  // Both Daphne and Violet should still appear as options
+  await baseExpect(page.getByRole("button", { name: USERS.daphne.name })).toBeVisible();
+  await baseExpect(page.getByRole("button", { name: USERS.violet.name })).toBeVisible();
 });
