@@ -52,6 +52,15 @@ export default function NotificationBadge() {
     navigate(`/transaction/${n.transactionId}`);
   };
 
+  const handleMarkAllRead = async () => {
+    try {
+      await api.post("/notifications/read-all");
+      setNotifications([]);
+    } catch {
+      // ignore
+    }
+  };
+
   return (
     <div className="relative" ref={ref}>
       <button
@@ -87,7 +96,14 @@ export default function NotificationBadge() {
           {notifications.length === 0 ? (
             <p className="p-4 text-sm text-gray-500">No new notifications</p>
           ) : (
-            notifications.map((n) => (
+            <>
+            <button
+              onClick={handleMarkAllRead}
+              className="block w-full text-right px-4 py-2 text-xs text-indigo-600 hover:bg-gray-50 border-b font-medium"
+            >
+              Mark all as read
+            </button>
+            {notifications.map((n) => (
               <button
                 key={n.id}
                 onClick={() => handleClick(n)}
@@ -95,7 +111,8 @@ export default function NotificationBadge() {
               >
                 <p className="text-sm text-gray-800">{n.message}</p>
               </button>
-            ))
+            ))}
+            </>
           )}
         </div>
       )}
