@@ -10,7 +10,8 @@ const EMAIL_OVERRIDE = process.env.EMAIL_OVERRIDE ?? "max.ross@gmail.com";
 export async function sendEmail(
   to: string,
   subject: string,
-  text: string
+  text: string,
+  html?: string
 ): Promise<void> {
   if (!process.env.SENDGRID_API_KEY) {
     console.log(`[Email skipped - no API key] To: ${to}, Subject: ${subject}`);
@@ -25,6 +26,7 @@ export async function sendEmail(
       from: FROM_EMAIL,
       subject: EMAIL_OVERRIDE ? `[To: ${to}] ${subject}` : subject,
       text,
+      ...(html && { html }),
     });
   } catch (err) {
     console.error("Failed to send email:", err);

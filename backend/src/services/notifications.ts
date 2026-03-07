@@ -25,9 +25,15 @@ export async function createNotification(params: {
     createdAt: FieldValue.serverTimestamp(),
   });
 
+  const baseUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : process.env.APP_URL || "http://localhost:5173";
+  const link = `${baseUrl}/transaction/${params.transactionId}`;
+
   await sendEmail(
     params.recipientEmail,
     `Pardons: ${params.type.replace("_", " ")}`,
-    params.message
+    `${params.message}\n\nView it here: ${link}`,
+    `<p>${params.message}</p><p><a href="${link}">View in Pardons</a></p>`
   );
 }
