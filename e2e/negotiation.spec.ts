@@ -96,23 +96,26 @@ test("counter limit: Counter button disappears after 2 counters from one side", 
 }) => {
   const txUrl = await maxCreatesOfferToDaphne(maxPage, 5, "Counter limit test");
 
-  // Counter 1: Daphne counters
+  // Counter 1: Daphne counters (5 -> 4)
   await daphnePage.goto(txUrl);
   await daphnePage.getByRole("button", { name: /Counter/ }).click();
+  await setNumberPickerValue(daphnePage.locator("text=Counter-offer").locator(".."), 4, 5);
   await daphnePage.getByPlaceholder("Why this amount?").fill("Reason 1");
   await daphnePage.getByRole("button", { name: "Send Counter-Offer" }).click();
   await expect(daphnePage.locator("text=Waiting for Max to respond")).toBeVisible();
 
-  // Max counters back
+  // Max counters back (4 -> 5)
   await maxPage.goto(txUrl);
   await maxPage.getByRole("button", { name: /Counter/ }).click();
+  await setNumberPickerValue(maxPage.locator("text=Counter-offer").locator(".."), 5, 4);
   await maxPage.getByPlaceholder("Why this amount?").fill("Reason 2");
   await maxPage.getByRole("button", { name: "Send Counter-Offer" }).click();
   await expect(maxPage.locator("text=Waiting for Daphne to respond")).toBeVisible();
 
-  // Counter 2: Daphne counters again
+  // Counter 2: Daphne counters again (5 -> 4)
   await daphnePage.goto(txUrl);
   await daphnePage.getByRole("button", { name: /Counter/ }).click();
+  await setNumberPickerValue(daphnePage.locator("text=Counter-offer").locator(".."), 4, 5);
   await daphnePage.getByPlaceholder("Why this amount?").fill("Reason 3");
   await daphnePage.getByRole("button", { name: "Send Counter-Offer" }).click();
   await expect(daphnePage.locator("text=Waiting for Max to respond")).toBeVisible();
@@ -121,8 +124,9 @@ test("counter limit: Counter button disappears after 2 counters from one side", 
   await maxPage.goto(txUrl);
   await expect(maxPage.getByRole("button", { name: /Counter/ })).toBeVisible();
 
-  // Max counters again (his 2nd)
+  // Max counters again (his 2nd, 4 -> 5)
   await maxPage.getByRole("button", { name: /Counter/ }).click();
+  await setNumberPickerValue(maxPage.locator("text=Counter-offer").locator(".."), 5, 4);
   await maxPage.getByPlaceholder("Why this amount?").fill("Reason 4");
   await maxPage.getByRole("button", { name: "Send Counter-Offer" }).click();
 

@@ -252,7 +252,7 @@ export default function TransactionPage() {
               <div className="flex gap-3">
                 <button
                   onClick={handleCounter}
-                  disabled={actionLoading || !counterMessage.trim()}
+                  disabled={actionLoading || !counterMessage.trim() || counterAmount === tx.currentAmount}
                   className="flex-1 bg-indigo-600 text-white py-2 rounded-lg font-medium hover:bg-indigo-500 disabled:opacity-50"
                 >
                   Send Counter-Offer
