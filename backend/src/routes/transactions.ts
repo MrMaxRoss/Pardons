@@ -173,11 +173,11 @@ transactionsRouter.post("/:id/accept", async (req: AuthRequest, res: Response) =
   const recipientIsInitiator = data.initiatorEmail !== req.userEmail;
   const acceptMessage = recipientIsInitiator
     ? data.type === "offer"
-      ? `On ${dateStr}, you offered ${data.targetName} ${data.currentAmount} pardon(s) for "${data.description}". ${req.userName} has accepted.`
-      : `On ${dateStr}, you requested ${data.currentAmount} pardon(s) from ${data.targetName} for "${data.description}". ${req.userName} has accepted.`
+      ? `On ${dateStr}, you offered ${data.targetName} ${data.currentAmount} pardon(s) for "${data.description}". Congratulations, ${req.userName} has accepted your offer!`
+      : `On ${dateStr}, you requested ${data.currentAmount} pardon(s) from ${data.targetName} for "${data.description}". Congratulations, ${req.userName} has accepted your request!`
     : data.type === "offer"
-      ? `On ${dateStr}, ${data.initiatorName} offered you ${data.currentAmount} pardon(s) for "${data.description}". ${req.userName} has accepted.`
-      : `On ${dateStr}, ${data.initiatorName} requested ${data.currentAmount} pardon(s) from you for "${data.description}". ${req.userName} has accepted.`;
+      ? `On ${dateStr}, ${data.initiatorName} offered you ${data.currentAmount} pardon(s) for "${data.description}". Congratulations, ${req.userName} has accepted the offer!`
+      : `On ${dateStr}, ${data.initiatorName} requested ${data.currentAmount} pardon(s) from you for "${data.description}". Congratulations, ${req.userName} has accepted the request!`;
   await createNotification({
     recipientEmail: otherEmail,
     transactionId: doc.id,
@@ -233,8 +233,8 @@ transactionsRouter.post("/:id/reject", async (req: AuthRequest, res: Response) =
   const rejectRecipientIsInitiator = data.initiatorEmail !== req.userEmail;
   const rejectMessage = rejectRecipientIsInitiator
     ? data.type === "offer"
-      ? `On ${rejectDateStr}, you offered ${data.targetName} ${data.currentAmount} pardon(s) for "${data.description}". Unfortunately, ${req.userName} rejected the offer.`
-      : `On ${rejectDateStr}, you requested ${data.currentAmount} pardon(s) from ${data.targetName} for "${data.description}". Unfortunately, ${req.userName} rejected the request.`
+      ? `On ${rejectDateStr}, you offered ${data.targetName} ${data.currentAmount} pardon(s) for "${data.description}". Unfortunately, ${req.userName} rejected your offer.`
+      : `On ${rejectDateStr}, you requested ${data.currentAmount} pardon(s) from ${data.targetName} for "${data.description}". Unfortunately, ${req.userName} rejected your request.`
     : data.type === "offer"
       ? `On ${rejectDateStr}, ${data.initiatorName} offered you ${data.currentAmount} pardon(s) for "${data.description}". Unfortunately, ${req.userName} rejected the offer.`
       : `On ${rejectDateStr}, ${data.initiatorName} requested ${data.currentAmount} pardon(s) from you for "${data.description}". Unfortunately, ${req.userName} rejected the request.`;
