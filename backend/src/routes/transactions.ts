@@ -6,6 +6,13 @@ import { createNotification } from "../services/notifications";
 
 export const transactionsRouter = Router();
 
+function formatDate(ts: any): string {
+  if (!ts) return "an earlier date";
+  const date = ts.toDate ? ts.toDate() : ts._seconds ? new Date(ts._seconds * 1000) : new Date(ts);
+  if (isNaN(date.getTime())) return "an earlier date";
+  return date.toLocaleDateString();
+}
+
 // Create a transaction (offer or request)
 transactionsRouter.post("/", async (req: AuthRequest, res: Response) => {
   const { type, targetEmail, targetName, amount, description } = req.body;
@@ -161,8 +168,7 @@ transactionsRouter.post("/:id/accept", async (req: AuthRequest, res: Response) =
 
   const otherEmail =
     data.initiatorEmail === req.userEmail ? data.targetEmail : data.initiatorEmail;
-  const createdAt = data.events[0]?.timestamp;
-  const dateStr = createdAt ? new Date(createdAt).toLocaleString() : "an earlier date";
+  const dateStr = formatDate(data.events[0]?.timestamp);
   const acceptMessage = data.initiatorEmail === req.userEmail
     ? `On ${dateStr}, ${data.targetName} ${data.type === "offer" ? "was offered" : "requested"} ${data.currentAmount} pardon(s) for "${data.description}". ${req.userName} has accepted.`
     : `On ${dateStr}, ${data.initiatorName} ${data.type === "offer" ? "offered" : "requested"} ${data.currentAmount} pardon(s) for "${data.description}". ${req.userName} has accepted.`;
@@ -216,8 +222,7 @@ transactionsRouter.post("/:id/reject", async (req: AuthRequest, res: Response) =
 
   const otherEmail =
     data.initiatorEmail === req.userEmail ? data.targetEmail : data.initiatorEmail;
-  const rejectCreatedAt = data.events[0]?.timestamp;
-  const rejectDateStr = rejectCreatedAt ? new Date(rejectCreatedAt).toLocaleString() : "an earlier date";
+  const rejectDateStr = formatDate(data.events[0]?.timestamp);
   const otherName = data.initiatorEmail === req.userEmail ? data.targetName : data.initiatorName;
   const rejectMessage = data.type === "offer"
     ? `On ${rejectDateStr}, ${data.initiatorName} offered ${otherName} ${data.currentAmount} pardon(s) for "${data.description}". Unfortunately, ${req.userName} rejected the offer.`
