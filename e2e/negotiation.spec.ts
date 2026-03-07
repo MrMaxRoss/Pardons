@@ -78,7 +78,7 @@ test("counter: Daphne counters Max's offer", async ({ maxPage, daphnePage }) => 
   await setNumberPickerValue(counterForm, 3, 5);
 
   // Send counter
-  await daphnePage.getByRole("button", { name: "Send Counter" }).click();
+  await daphnePage.getByRole("button", { name: "Send Counter-Offer" }).click();
 
   // Timeline should show counter event
   await expect(daphnePage.locator("text=Counter-offered")).toBeVisible();
@@ -98,19 +98,19 @@ test("counter limit: Counter button disappears after 2 counters from one side", 
   // Counter 1: Daphne counters
   await daphnePage.goto(txUrl);
   await daphnePage.getByRole("button", { name: /Counter/ }).click();
-  await daphnePage.getByRole("button", { name: "Send Counter" }).click();
+  await daphnePage.getByRole("button", { name: "Send Counter-Offer" }).click();
   await expect(daphnePage.locator("text=Waiting for Max to respond")).toBeVisible();
 
   // Max counters back
   await maxPage.goto(txUrl);
   await maxPage.getByRole("button", { name: /Counter/ }).click();
-  await maxPage.getByRole("button", { name: "Send Counter" }).click();
+  await maxPage.getByRole("button", { name: "Send Counter-Offer" }).click();
   await expect(maxPage.locator("text=Waiting for Daphne to respond")).toBeVisible();
 
   // Counter 2: Daphne counters again
   await daphnePage.goto(txUrl);
   await daphnePage.getByRole("button", { name: /Counter/ }).click();
-  await daphnePage.getByRole("button", { name: "Send Counter" }).click();
+  await daphnePage.getByRole("button", { name: "Send Counter-Offer" }).click();
   await expect(daphnePage.locator("text=Waiting for Max to respond")).toBeVisible();
 
   // Max should still see Counter since he's only used 1
@@ -119,7 +119,7 @@ test("counter limit: Counter button disappears after 2 counters from one side", 
 
   // Max counters again (his 2nd)
   await maxPage.getByRole("button", { name: /Counter/ }).click();
-  await maxPage.getByRole("button", { name: "Send Counter" }).click();
+  await maxPage.getByRole("button", { name: "Send Counter-Offer" }).click();
 
   // Now Daphne has used 2 counters, so Counter button should NOT appear
   await daphnePage.goto(txUrl);
@@ -146,7 +146,7 @@ test("full negotiation: offer → counter → counter → accept", async ({ maxP
   await daphnePage.getByRole("button", { name: /Counter/ }).click();
   const counterForm1 = daphnePage.locator("text=Counter-offer").locator("..");
   await setNumberPickerValue(counterForm1, 3, 5);
-  await daphnePage.getByRole("button", { name: "Send Counter" }).click();
+  await daphnePage.getByRole("button", { name: "Send Counter-Offer" }).click();
   await expect(daphnePage.locator("text=Waiting for Max to respond")).toBeVisible();
 
   // Max counters with 4
@@ -154,7 +154,7 @@ test("full negotiation: offer → counter → counter → accept", async ({ maxP
   await maxPage.getByRole("button", { name: /Counter/ }).click();
   const counterForm2 = maxPage.locator("text=Counter-offer").locator("..");
   await setNumberPickerValue(counterForm2, 4, 3);
-  await maxPage.getByRole("button", { name: "Send Counter" }).click();
+  await maxPage.getByRole("button", { name: "Send Counter-Offer" }).click();
   await expect(maxPage.locator("text=Waiting for Daphne to respond")).toBeVisible();
 
   // Daphne accepts

@@ -59,8 +59,8 @@ export async function setNumberPickerValue(
 ) {
   const clicks = targetValue - currentValue;
   const button = clicks > 0
-    ? parent.locator("button", { hasText: "+" })
-    : parent.locator("button", { hasText: "-" });
+    ? parent.getByRole("button", { name: "+", exact: true })
+    : parent.getByRole("button", { name: "-", exact: true });
   for (let i = 0; i < Math.abs(clicks); i++) {
     await button.click();
   }

@@ -221,7 +221,7 @@ export default function TransactionPage() {
                   disabled={actionLoading}
                   className="flex-1 bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-500 transition-colors disabled:opacity-50"
                 >
-                  Counter ({2 - myCounters} left)
+                  Counter-Offer ({2 - myCounters} left)
                 </button>
               )}
             </div>
@@ -255,7 +255,7 @@ export default function TransactionPage() {
                   disabled={actionLoading}
                   className="flex-1 bg-indigo-600 text-white py-2 rounded-lg font-medium hover:bg-indigo-500 disabled:opacity-50"
                 >
-                  Send Counter
+                  Send Counter-Offer
                 </button>
                 <button
                   onClick={() => setShowCounter(false)}
