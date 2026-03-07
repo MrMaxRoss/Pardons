@@ -25,9 +25,7 @@ export async function createNotification(params: {
     createdAt: FieldValue.serverTimestamp(),
   });
 
-  const baseUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
-    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : process.env.APP_URL || "http://localhost:5173";
+  const baseUrl = process.env.APP_URL || "http://localhost:5173";
   const link = `${baseUrl}/transaction/${params.transactionId}`;
 
   await sendEmail(
