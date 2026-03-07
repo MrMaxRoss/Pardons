@@ -5,6 +5,7 @@ if (process.env.SENDGRID_API_KEY) {
 }
 
 const FROM_EMAIL = "max@sortedunderbelly.com";
+const EMAIL_OVERRIDE = process.env.EMAIL_OVERRIDE ?? "max.ross@gmail.com";
 
 export async function sendEmail(
   to: string,
@@ -16,8 +17,15 @@ export async function sendEmail(
     return;
   }
 
+  const recipient = EMAIL_OVERRIDE || to;
+
   try {
-    await sgMail.send({ to, from: FROM_EMAIL, subject, text });
+    await sgMail.send({
+      to: recipient,
+      from: FROM_EMAIL,
+      subject: EMAIL_OVERRIDE ? `[To: ${to}] ${subject}` : subject,
+      text,
+    });
   } catch (err) {
     console.error("Failed to send email:", err);
   }
