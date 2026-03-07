@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthContext } from "./auth";
 import { setTokenGetter } from "./api";
 import LoginPage from "./pages/LoginPage";
@@ -10,7 +10,8 @@ import Layout from "./components/Layout";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem("token");
-  if (!token) return <Navigate to="/login" replace />;
+  const location = useLocation();
+  if (!token) return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} replace />;
   return <>{children}</>;
 }
 

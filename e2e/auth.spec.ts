@@ -40,5 +40,5 @@ test("sign out redirects to login and clears auth", async ({ page }) => {
 
 test("visiting protected route without auth redirects to login", async ({ page }) => {
   await page.goto("/");
-  await page.waitForURL("/login");
+  await page.waitForURL(/\/login/);
 });

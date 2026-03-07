@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { useAuth } from "../auth";
 import api from "../api";
@@ -26,9 +26,11 @@ function parseJwt(token: string) {
 export default function LoginPage() {
   const { login, token } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get("redirect") || "/";
 
   if (token) {
-    navigate("/", { replace: true });
+    navigate(redirect, { replace: true });
     return null;
   }
 
@@ -42,7 +44,7 @@ export default function LoginPage() {
       // non-critical
     }
 
-    navigate("/");
+    navigate(redirect);
   };
 
   const handleSuccess = async (response: CredentialResponse) => {
@@ -58,7 +60,7 @@ export default function LoginPage() {
       // non-critical
     }
 
-    navigate("/");
+    navigate(redirect);
   };
 
   return (
