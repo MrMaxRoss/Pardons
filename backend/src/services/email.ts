@@ -4,7 +4,7 @@ if (process.env.SENDGRID_API_KEY) {
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 }
 
-const FROM_EMAIL = "pardons@rossFamily.app";
+const FROM_EMAIL = "pardons@sortedunderbelly.com";
 
 export async function sendEmail(
   to: string,
