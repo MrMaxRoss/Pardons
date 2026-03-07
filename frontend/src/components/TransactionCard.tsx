@@ -23,11 +23,13 @@ export default function TransactionCard({ tx }: { tx: Transaction }) {
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 mb-1">
-            <span
-              className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${statusColors[tx.status]}`}
-            >
-              {tx.status}
-            </span>
+            {tx.status !== "pending" && (
+              <span
+                className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${statusColors[tx.status]}`}
+              >
+                {tx.status}
+              </span>
+            )}
             <span className="text-xs text-gray-500 capitalize">
               {lastEvent?.action === "countered" ? "Counter-Offer" : tx.type}
             </span>
