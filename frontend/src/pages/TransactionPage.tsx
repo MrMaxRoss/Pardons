@@ -157,9 +157,9 @@ export default function TransactionPage() {
                 <div className="w-2 h-2 rounded-full bg-indigo-400 mt-2 shrink-0" />
                 <div>
                   <p className="text-sm text-gray-800">
-                    {event.action === "created" ? (
+                    {event.action === "created" || event.action === "rejected" ? (
                       <>
-                        Created by{" "}
+                        {actionLabels[event.action] || event.action} by{" "}
                         <span className="font-medium">
                           {event.actorEmail === email ? "You" : otherName}
                         </span>
@@ -239,7 +239,7 @@ export default function TransactionPage() {
               </div>
               <div>
                 <label className="block text-sm text-gray-600 mb-1">
-                  Message (optional)
+                  Reason
                 </label>
                 <input
                   type="text"
@@ -252,7 +252,7 @@ export default function TransactionPage() {
               <div className="flex gap-3">
                 <button
                   onClick={handleCounter}
-                  disabled={actionLoading}
+                  disabled={actionLoading || !counterMessage.trim()}
                   className="flex-1 bg-indigo-600 text-white py-2 rounded-lg font-medium hover:bg-indigo-500 disabled:opacity-50"
                 >
                   Send Counter-Offer
