@@ -169,9 +169,15 @@ transactionsRouter.post("/:id/accept", async (req: AuthRequest, res: Response) =
   const otherEmail =
     data.initiatorEmail === req.userEmail ? data.targetEmail : data.initiatorEmail;
   const dateStr = formatDate(data.events[0]?.timestamp);
-  const acceptMessage = data.initiatorEmail === req.userEmail
-    ? `On ${dateStr}, ${data.targetName} ${data.type === "offer" ? "was offered" : "requested"} ${data.currentAmount} pardon(s) for "${data.description}". ${req.userName} has accepted.`
-    : `On ${dateStr}, ${data.initiatorName} ${data.type === "offer" ? "offered" : "requested"} ${data.currentAmount} pardon(s) for "${data.description}". ${req.userName} has accepted.`;
+  // The recipient of this email is otherEmail (the person who did NOT act), so "you" = otherEmail
+  const recipientIsInitiator = data.initiatorEmail !== req.userEmail;
+  const acceptMessage = recipientIsInitiator
+    ? data.type === "offer"
+      ? `On ${dateStr}, you offered ${data.targetName} ${data.currentAmount} pardon(s) for "${data.description}". ${req.userName} has accepted.`
+      : `On ${dateStr}, you requested ${data.currentAmount} pardon(s) from ${data.targetName} for "${data.description}". ${req.userName} has accepted.`
+    : data.type === "offer"
+      ? `On ${dateStr}, ${data.initiatorName} offered you ${data.currentAmount} pardon(s) for "${data.description}". ${req.userName} has accepted.`
+      : `On ${dateStr}, ${data.initiatorName} requested ${data.currentAmount} pardon(s) from you for "${data.description}". ${req.userName} has accepted.`;
   await createNotification({
     recipientEmail: otherEmail,
     transactionId: doc.id,
@@ -223,10 +229,15 @@ transactionsRouter.post("/:id/reject", async (req: AuthRequest, res: Response) =
   const otherEmail =
     data.initiatorEmail === req.userEmail ? data.targetEmail : data.initiatorEmail;
   const rejectDateStr = formatDate(data.events[0]?.timestamp);
-  const otherName = data.initiatorEmail === req.userEmail ? data.targetName : data.initiatorName;
-  const rejectMessage = data.type === "offer"
-    ? `On ${rejectDateStr}, ${data.initiatorName} offered ${otherName} ${data.currentAmount} pardon(s) for "${data.description}". Unfortunately, ${req.userName} rejected the offer.`
-    : `On ${rejectDateStr}, ${data.initiatorName} requested ${data.currentAmount} pardon(s) from ${otherName} for "${data.description}". Unfortunately, ${req.userName} rejected the request.`;
+  // The recipient of this email is otherEmail (the person who did NOT reject), so "you" = otherEmail
+  const rejectRecipientIsInitiator = data.initiatorEmail !== req.userEmail;
+  const rejectMessage = rejectRecipientIsInitiator
+    ? data.type === "offer"
+      ? `On ${rejectDateStr}, you offered ${data.targetName} ${data.currentAmount} pardon(s) for "${data.description}". Unfortunately, ${req.userName} rejected the offer.`
+      : `On ${rejectDateStr}, you requested ${data.currentAmount} pardon(s) from ${data.targetName} for "${data.description}". Unfortunately, ${req.userName} rejected the request.`
+    : data.type === "offer"
+      ? `On ${rejectDateStr}, ${data.initiatorName} offered you ${data.currentAmount} pardon(s) for "${data.description}". Unfortunately, ${req.userName} rejected the offer.`
+      : `On ${rejectDateStr}, ${data.initiatorName} requested ${data.currentAmount} pardon(s) from you for "${data.description}". Unfortunately, ${req.userName} rejected the request.`;
   await createNotification({
     recipientEmail: otherEmail,
     transactionId: doc.id,
