@@ -157,11 +157,22 @@ export default function TransactionPage() {
                 <div className="w-2 h-2 rounded-full bg-indigo-400 mt-2 shrink-0" />
                 <div>
                   <p className="text-sm text-gray-800">
-                    <span className="font-medium">
-                      {event.actorEmail === email ? "You" : otherName}
-                    </span>{" "}
-                    {actionLabels[event.action] || event.action}
-                    {event.action === "countered" && ` with ${event.amount}`}
+                    {event.action === "created" ? (
+                      <>
+                        Created by{" "}
+                        <span className="font-medium">
+                          {event.actorEmail === email ? "You" : otherName}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="font-medium">
+                          {event.actorEmail === email ? "You" : otherName}
+                        </span>{" "}
+                        {actionLabels[event.action] || event.action}
+                        {event.action === "countered" && ` with ${event.amount}`}
+                      </>
+                    )}
                   </p>
                   {event.message && (
                     <p className="text-xs text-gray-500 mt-0.5 italic">
