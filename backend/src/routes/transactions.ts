@@ -49,12 +49,14 @@ transactionsRouter.post("/", async (req: AuthRequest, res: Response) => {
   });
 
   const notifType = type === "offer" ? "new_offer" : "new_request";
-  const verb = type === "offer" ? "offered" : "requested";
+  const notifMessage = type === "offer"
+    ? `${req.userName} is offering you ${amount} pardon(s) for "${description}".`
+    : `${req.userName} is requesting ${amount} pardon(s) from you for "${description}".`;
   await createNotification({
     recipientEmail: targetEmail,
     transactionId: docRef.id,
     type: notifType,
-    message: `${req.userName} ${verb} ${amount} pardon(s): "${description}"`,
+    message: notifMessage,
   });
 
   res.status(201).json({ id: docRef.id });
@@ -159,11 +161,16 @@ transactionsRouter.post("/:id/accept", async (req: AuthRequest, res: Response) =
 
   const otherEmail =
     data.initiatorEmail === req.userEmail ? data.targetEmail : data.initiatorEmail;
+  const createdAt = data.events[0]?.timestamp;
+  const dateStr = createdAt ? new Date(createdAt).toLocaleString() : "an earlier date";
+  const acceptMessage = data.initiatorEmail === req.userEmail
+    ? `On ${dateStr}, ${data.targetName} ${data.type === "offer" ? "was offered" : "requested"} ${data.currentAmount} pardon(s) for "${data.description}". ${req.userName} has accepted.`
+    : `On ${dateStr}, ${data.initiatorName} ${data.type === "offer" ? "offered" : "requested"} ${data.currentAmount} pardon(s) for "${data.description}". ${req.userName} has accepted.`;
   await createNotification({
     recipientEmail: otherEmail,
     transactionId: doc.id,
     type: "accepted",
-    message: `${req.userName} accepted the pardon of ${data.currentAmount}: "${data.description}"`,
+    message: acceptMessage,
   });
 
   res.json({ success: true });
@@ -209,11 +216,17 @@ transactionsRouter.post("/:id/reject", async (req: AuthRequest, res: Response) =
 
   const otherEmail =
     data.initiatorEmail === req.userEmail ? data.targetEmail : data.initiatorEmail;
+  const rejectCreatedAt = data.events[0]?.timestamp;
+  const rejectDateStr = rejectCreatedAt ? new Date(rejectCreatedAt).toLocaleString() : "an earlier date";
+  const otherName = data.initiatorEmail === req.userEmail ? data.targetName : data.initiatorName;
+  const rejectMessage = data.type === "offer"
+    ? `On ${rejectDateStr}, ${data.initiatorName} offered ${otherName} ${data.currentAmount} pardon(s) for "${data.description}". Unfortunately, ${req.userName} rejected the offer.`
+    : `On ${rejectDateStr}, ${data.initiatorName} requested ${data.currentAmount} pardon(s) from ${otherName} for "${data.description}". Unfortunately, ${req.userName} rejected the request.`;
   await createNotification({
     recipientEmail: otherEmail,
     transactionId: doc.id,
     type: "rejected",
-    message: `${req.userName} rejected the pardon: "${data.description}"`,
+    message: rejectMessage,
   });
 
   res.json({ success: true });
@@ -274,11 +287,12 @@ transactionsRouter.post("/:id/counter", async (req: AuthRequest, res: Response) 
   });
 
   const otherEmail = isInitiator ? data.targetEmail : data.initiatorEmail;
+  const counterMessage = `${req.userName} has counter-offered ${amount} pardon(s) on "${data.description}"${message ? `: "${message}"` : ""}.`;
   await createNotification({
     recipientEmail: otherEmail,
     transactionId: doc.id,
     type: "countered",
-    message: `${req.userName} counter-offered ${amount} pardon(s) on "${data.description}"`,
+    message: counterMessage,
   });
 
   res.json({ success: true });
