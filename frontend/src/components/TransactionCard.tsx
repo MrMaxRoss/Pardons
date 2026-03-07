@@ -28,7 +28,9 @@ export default function TransactionCard({ tx }: { tx: Transaction }) {
             >
               {tx.status}
             </span>
-            <span className="text-xs text-gray-500 capitalize">{tx.type}</span>
+            <span className="text-xs text-gray-500 capitalize">
+              {lastEvent?.action === "countered" ? "Counter-Offer" : tx.type}
+            </span>
             {isMyTurn && (
               <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">
                 Your turn
